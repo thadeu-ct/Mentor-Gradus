@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-# Importa as NOVAS funções e os DADOS CARREGADOS
 from . import dados 
 
 # --- Inicialização do Servidor ---
@@ -30,20 +29,15 @@ def api_processar_estado():
     formacoes = data.get('formacoes', [])
     dominios = data.get('dominios', [])
     
-    # --- NOVA LINHA ---
-    enfase_escolhida = data.get('enfase_escolhida', None) # Recebe a ênfase
-    # --- FIM DA NOVA LINHA ---
-    
+    enfase_escolhida = data.get('enfase_escolhida', None)
     pre_selecionadas = data.get('pre_selecionadas', []) 
 
     print("API: /api/processar-estado chamado")
     
-    # --- CHAMADA ATUALIZADA ---
     obrigatorias_cods, optativas_cods, grupos_pendentes = dados.processar_selecao(
         formacoes, dominios, enfase_escolhida, pre_selecionadas,
         dados_form, dados_dom, dados_mat_map, dados_opt
     )
-    # --- FIM DA ATUALIZAÇÃO ---
 
     obrigatorias_obj = [dados_mat_map[cod] for cod in obrigatorias_cods if cod in dados_mat_map]
     optativas_obj = [dados_mat_map[cod] for cod in optativas_cods if cod in dados_mat_map]
@@ -66,7 +60,6 @@ def api_get_opcoes_grupo():
         
     data = request.json
     codigo_grupo = data.get('codigo_grupo')
-    # O set de matérias cursadas é a soma das obrigatórias + pré-selecionadas
     materias_cursadas_set = set(data.get('materias_cursadas_set', [])) 
 
     print("API: /api/get-opcoes-grupo chamado para %s" % codigo_grupo)
