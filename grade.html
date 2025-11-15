@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Horária</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="header-placeholder"></header>
+
+    <aside class="sidebar">
+        <button class="sidebar-toggle" id="toggle-sidebar-btn">
+            <i class="fas fa-chevron-left"></i> <i class="fas fa-bars"></i>
+        </button>
+        <div class="sidebar-content" id="sidebar-grade-content">
+            <div class="menu-section">
+                <h3>Períodos do Planner</h3>
+                <div class="selection-area" id="periodos-selection">
+                    </div>
+                <div class="options-dropdown" id="periodos-options">
+                    </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="planner-board" id="grade-board">
+            
+        <div id="grade-grid-container">
+            <div id="grade-grid">
+                <div class="grid-cell grid-header">Horário</div>
+                <div class="grid-cell grid-header">Segunda</div>
+                <div class="grid-cell grid-header">Terça</div>
+                <div class="grid-cell grid-header">Quarta</div>
+                <div class="grid-cell grid-header">Quinta</div>
+                <div class="grid-cell grid-header">Sexta</div>
+                
+                <div class="grid-cell grid-time">07:00 09:00</div>
+                <div class="grid-cell grid-dropzone" data-day="seg" data-time="07"></div>
+                <div class="grid-cell grid-dropzone" data-day="ter" data-time="07"></div>
+                <div class="grid-cell grid-dropzone" data-day="qua" data-time="07"></div>
+                <div class="grid-cell grid-dropzone" data-day="qui" data-time="07"></div>
+                <div class="grid-cell grid-dropzone" data-day="sex" data-time="07"></div>
+                
+                <div class="grid-cell grid-time">09:00 11:00</div>
+                <div class="grid-cell grid-dropzone" data-day="seg" data-time="09"></div>
+                <div class="grid-cell grid-dropzone" data-day="ter" data-time="09"></div>
+                <div class="grid-cell grid-dropzone" data-day="qua" data-time="09"></div>
+                <div class="grid-cell grid-dropzone" data-day="qui" data-time="09"></div>
+                <div class="grid-cell grid-dropzone" data-day="sex" data-time="09"></div>
+                
+                <div class="grid-cell grid-time">11:00 13:00</div>
+                <div class="grid-cell grid-dropzone" data-day="seg" data-time="11"></div>
+                <div class="grid-cell grid-dropzone" data-day="ter" data-time="11"></div>
+                <div class="grid-cell grid-dropzone" data-day="qua" data-time="11"></div>
+                <div class="grid-cell grid-dropzone" data-day="qui" data-time="11"></div>
+                <div class="grid-cell grid-dropzone" data-day="sex" data-time="11"></div>
+                
+                <div class="grid-cell grid-time">13:00 15:00</div>
+                <div class="grid-cell grid-dropzone" data-day="seg" data-time="13"></div>
+                <div class="grid-cell grid-dropzone" data-day="ter" data-time="13"></div>
+                <div class="grid-cell grid-dropzone" data-day="qua" data-time="13"></div>
+                <div class="grid-cell grid-dropzone" data-day="qui" data-time="13"></div>
+                <div class="grid-cell grid-dropzone" data-day="sex" data-time="13"></div>
+                
+                <div class="grid-cell grid-time">15:00 17:00</div>
+                <div class="grid-cell grid-dropzone" data-day="seg" data-time="15"></div>
+                <div class="grid-cell grid-dropzone" data-day="ter" data-time="15"></div>
+                <div class="grid-cell grid-dropzone" data-day="qua" data-time="15"></div>
+                <div class="grid-cell grid-dropzone" data-day="qui" data-time="15"></div>
+                <div class="grid-cell grid-dropzone" data-day="sex" data-time="15"></div>
+                
+                <div class="grid-cell grid-time">17:00 19:00</div>
+                <div class="grid-cell grid-dropzone" data-day="seg" data-time="17"></div>
+                <div class="grid-cell grid-dropzone" data-day="ter" data-time="17"></div>
+                <div class="grid-cell grid-dropzone" data-day="qua" data-time="17"></div>
+                <div class="grid-cell grid-dropzone" data-day="qui" data-time="17"></div>
+                <div class="grid-cell grid-dropzone" data-day="sex" data-time="17"></div>
+            </div>
+        </div>
+
+        <div id="grade-online-row">
+            <div class="grid-cell online-header">Online</div>
+            <div class="grid-cell grid-dropzone" id="online-dropzone">
+                </div>
+        </div>
+        
+    </main>
+
+    <aside class="materia-pool" id="materia-pool-sidebar">
+        <button class="materia-pool-toggle" id="toggle-pool-btn">
+            <i class="fas fa-chevron-right"></i>
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="pool-content" id="pool-grade-content">
+            <h3>Matérias do Período</h3>
+            <div class="pool-search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="pool-search-input" placeholder="Buscar por código ou nome...">
+            </div>
+            <div class="pool-list" id="pool-list-container">
+                </div>
+        </div>
+    </aside>
+
+    <div id="modal-backdrop" class="modal-backdrop escondido"></div>
+    <div id="modal-selecao" class="modal-container escondido">
+        <div class="modal-header">
+            <h3 id="modal-titulo">Escolher Matéria</h3>
+            <button id="modal-fechar-btn" class="modal-fechar-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p id="modal-descricao">Selecione uma matéria para cumprir os créditos de:</p>
+            <div id="modal-lista-opcoes">
+                </div>
+        </div>
+    </div>
+
+    <footer id="footer-placeholder"></footer>
+    
+    <script src="app.js"></script>
+</body>
+</html>

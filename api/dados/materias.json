@@ -1,0 +1,1232 @@
+[
+    { 
+        "codigo": "ACN1038",
+         "nome": "Curadoria e Produtora em Arte e Cultura",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ARQ1501",
+         "nome": "Extensão em Projetos Ambientais",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ARQ1502",
+         "nome": "Gráfica Digital em Urbanismo",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ARQ1503",
+         "nome": "Canteiro Experimental",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ARQ1504",
+         "nome": "Favlab",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "CTC4001",
+         "nome": "Instrumentação e Medição",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "CTC4002",
+         "nome": "Modelagem e Programação",
+         "creditos": 6,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "CTC4003",
+         "nome": "Desenho Técnico e Geometria Analítica",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "CTC4400",
+         "nome": "Computação Quântica",
+         "creditos": 4,
+         "prereqs": [["MAT4174"]]
+    },
+    { 
+        "codigo": "CRE1200",
+         "nome": "O Humano e o Fenômeno Religioso",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "CRE1212",
+         "nome": "O Cristianismo e as Grandes Reigiões",
+         "creditos": 4,
+         "prereqs": [["CRE1200"]]
+    },
+    { 
+        "codigo": "CRE1215",
+         "nome": "Cristianismo e Judaísmo",
+         "creditos": 4,
+         "prereqs": [["CRE1200"]]
+    },
+    { 
+        "codigo": "CRE1216",
+         "nome": "Bíblia e Cristianismo",
+         "creditos": 4,
+         "prereqs": [["CRE1200"]]
+    },
+    { 
+        "codigo": "CRE1217",
+         "nome": "Cristianismo e Dialogo com o Mundo Moderno",
+         "creditos": 4,
+         "prereqs": [["CRE1200"]]
+    },
+    { 
+        "codigo": "CRE1218",
+         "nome": "Cristianismo e Problemas Sociais",
+         "creditos": 4,
+         "prereqs": [["CRE1200"]]
+    },
+    { 
+        "codigo": "CRE1227",
+         "nome": "O Cristianismo",
+         "creditos": 4,
+         "prereqs": [["CRE1200"]]
+    },
+    { 
+        "codigo": "CRE1241",
+         "nome": "Ética Cristã",
+         "creditos": 2,
+         "prereqs": [["CRE0712"]]
+    },
+    { 
+        "codigo": "CRE1275",
+         "nome": "Ética Socioambiental e Direitos Humanos",
+         "creditos": 2,
+         "prereqs": [["CRE1241"]]
+    },
+    { 
+        "codigo": "DSG1016",
+         "nome": "Projeto Gráfico Publica Criativas",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "DSG1017",
+         "nome": "AEIOU: Arte Educacional Inclusiva e Orientada Universitários",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "DSG1018",
+         "nome": "Design for Peace: Design Eco Paz",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ECO1251",
+         "nome": "Métodos Quanticos em Macroeconomia",
+         "creditos": 4,
+         "prereqs": [["ECO1443"]]
+    },
+    { 
+        "codigo": "ECO1351",
+         "nome": "Métodos Quanticos em Economia Aplicada",
+         "creditos": 4,
+         "prereqs": [["ECO1443"]]
+    },
+    { 
+        "codigo": "ECO1443",
+         "nome": "Econometria II",
+         "creditos": 6,
+         "prereqs": [["ECO1442"]]
+    },
+    { 
+        "codigo": "ECO1751",
+         "nome": "Métodos Quanticos em Finanças",
+         "creditos": 4,
+         "prereqs": [["ECO1443", "ECO1743"]]
+    },
+    { 
+        "codigo": "ECO1852",
+         "nome": "Machine Learning em Economia",
+         "creditos": 4,
+         "prereqs": [["ECO1443"]]
+    },
+    { 
+        "codigo": "ELE2340",
+         "nome": "Processamento Digital de Sinais",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2345",
+         "nome": "Data Science",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2346",
+         "nome": "Deep Learning",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2363",
+         "nome": "Sistema Operacional Robos Inteligentes",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2364",
+         "nome": "Aprendizado por Reforço",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2389",
+         "nome": "Redes Neurais",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2394",
+         "nome": "Redes Neurais I",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2395",
+         "nome": "Computação Evolucionária",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2399",
+         "nome": "Lógica Fuzzy",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2616",
+         "nome": "Processos Analógico de Sinais",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2711",
+         "nome": "Métodos Estatisticos Multivariáveis",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2721",
+         "nome": "Modelos Estruturais Séries Temporais",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2742",
+         "nome": "Programação Linear",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EMP1310",
+         "nome": "Comunicação e Trabalho em Equipe",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EMP1320",
+         "nome": "Criação de Oportunidade",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EMP1330",
+         "nome": "Mentalidade Empreendedora",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG1034",
+         "nome": "Mineração Dados",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG1125",
+         "nome": "Tópicos Especiais",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG1492",
+         "nome": "Redes de Comunicações",
+         "creditos": 4,
+         "prereqs": [["ENG4410"]]
+    },
+    { 
+        "codigo": "ENG1496",
+         "nome": "Dispositivos de Microondas",
+         "creditos": 6,
+         "prereqs": [["ENG4405", "ENG1407"]]
+    },
+    { 
+        "codigo": "ENG4004",
+         "nome": "Desenho Mecânico",
+         "creditos": 2,
+         "prereqs": [["CTC4003"]]
+    },
+    { 
+        "codigo": "ENG4007",
+         "nome": "Introdução à Mecânica dos Sólidos",
+         "creditos": 2,
+         "prereqs": [["FIS4001", "MAT4200"]]
+    },
+    { 
+        "codigo": "ENG4010",
+         "nome": "Projeto Integrado - Sustentabilidade",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4011",
+         "nome": "Fenômenos de Transporte I",
+         "creditos": 2,
+         "prereqs": [["FIS4002", "MAT4162"]]
+    },
+    { 
+        "codigo": "ENG4015",
+         "nome": "Introdução à Especificação e Seleção de Materiais",
+         "creditos": 2,
+         "prereqs": [["CTC4001"]]
+    },
+    { 
+        "codigo": "ENG4020",
+         "nome": "Projeto Integrado - Materiais",
+         "creditos": 2,
+         "prereqs": [["EMP1320", "ENG4010", "ENG4015"]]
+    },
+    { 
+        "codigo": "ENG4021",
+         "nome": "Projeto Integrado - Software",
+         "creditos": 2,
+         "prereqs": [["ENG4010"]]
+    },
+    { 
+        "codigo": "ENG4025",
+         "nome": "Ciências Ambientais",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4030",
+         "nome": "Projeto Integrado - Empreendedorismo",
+         "creditos": 3,
+         "prereqs": [["EMP1330", "ENG4021", "ENG4500"]]
+    },
+    { 
+        "codigo": "ENG4033",
+         "nome": "Projeto Programação de Microcontroladores",
+         "creditos": 4,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "ENG4040",
+         "nome": "Projeto Integrado - Ciência de Dados",
+         "creditos": 3,
+         "prereqs": [["ENG4010", "ENG4501", "ENG4502"]]
+    },
+    { 
+        "codigo": "ENG4051",
+         "nome": "Projeto Internet das Coisas",
+         "creditos": 2,
+         "prereqs": [["ENG4033"]]
+    },
+    { 
+        "codigo": "ENG4061",
+         "nome": "Projeto Robótica",
+         "creditos": 2,
+         "prereqs": [["ENG4033"]]
+    },
+    { 
+        "codigo": "ENG4134",
+         "nome": "Projeto de Graduação em Engenharia da Computação I",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4135",
+         "nome": "Projeto de Graduação em Engenharia da Computação II",
+         "creditos": 2,
+         "prereqs": [["ENG4134"]]
+    },
+    { 
+        "codigo": "ENG4136",
+         "nome": "Projeto de Graduação em Engenharia de Controle e Automação I",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4137",
+         "nome": "Projeto de Graduação em Engenharia de Controle e Automação II",
+         "creditos": 2,
+         "prereqs": [["ENG4136"]]
+    },
+    { 
+        "codigo": "ENG4142",
+         "nome": "Projeto de Graduação em Engenharia Elétrica I",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4143",
+         "nome": "Projeto de Graduação em Engenharia Elétrica II",
+         "creditos": 2,
+         "prereqs": [["ENG4142"]]
+    },
+    { 
+        "codigo": "ENG4153",
+         "nome": "Estágio Supervisionado em Engenharia da Computação",
+         "creditos": 1,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4154",
+         "nome": "Estágio Supervisionado em Engenharia de Controle e Automação",
+         "creditos": 1,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4155",
+         "nome": "Estágio Supervisionado em Engenharia Elétrica",
+         "creditos": 1,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4402",
+         "nome": "Engenharia de Dados",
+         "creditos": 2,
+         "prereqs": [["INF1383"]]
+    },
+    { 
+        "codigo": "ENG4405",
+         "nome": "Materiais Elétricos e Digitais",
+         "creditos": 4,
+         "prereqs": [["FIS4003"]]
+    },
+    { 
+        "codigo": "ENG4407",
+         "nome": "Eletromagnetismo I",
+         "creditos": 4,
+         "prereqs": [["FIS4003", "MAT4163", "MAT4174"]]
+    },
+    { 
+        "codigo": "ENG4410",
+         "nome": "Modelos Probabilísticos Engenharia Elétrica",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4411",
+         "nome": "Princípios de Comunicações",
+         "creditos": 4,
+         "prereqs": [["MAT4174"]]
+    },
+    { 
+        "codigo": "ENG4412",
+         "nome": "Instalações Elétricas",
+         "creditos": 2,
+         "prereqs": [["CTC4003", "ENG4421"]]
+    },
+    { 
+        "codigo": "ENG4415",
+         "nome": "Conversão Eletromecânica de Energia",
+         "creditos": 4,
+         "prereqs": [["ENG4421", "FIS4003"]]
+    },
+    { 
+        "codigo": "ENG4417",
+         "nome": "Controle e Servomecanismos",
+         "creditos": 6,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4418",
+         "nome": "Introdução a Eletrônica Digital",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4419",
+         "nome": "Eletrônica Digital",
+         "creditos": 4,
+         "prereqs": [["ENG4418"]]
+    },
+    { 
+        "codigo": "ENG4420",
+         "nome": "Circuitos Elétricos e Eletrônicos I",
+         "creditos": 4,
+         "prereqs": [["MAT4200"]]
+    },
+    { 
+        "codigo": "ENG4421",
+         "nome": "Circuitos Elétricos e Eletrônicos II",
+         "creditos": 4,
+         "prereqs": [["ENG4420", "MAT4174"]]
+    },
+    { 
+        "codigo": "ENG4422",
+         "nome": "Introdução a Sistemas de Energia Elétrica",
+         "creditos": 4,
+         "prereqs": [["ENG4420"]]
+    },
+    { 
+        "codigo": "ENG4424",
+         "nome": "Instrumentação Eletrônica",
+         "creditos": 4,
+         "prereqs": [["ENG4419", "MAT4174"]]
+    },
+    { 
+        "codigo": "ENG4425",
+         "nome": "Geração e Transformação de Energia",
+         "creditos": 4,
+         "prereqs": [["ENG4422"]]
+    },
+    { 
+        "codigo": "ENG4432",
+         "nome": "Subestações",
+         "creditos": 4,
+         "prereqs": [["ENG4437"]]
+    },
+    { 
+        "codigo": "ENG4436",
+         "nome": "Eficiência Energética",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4437",
+         "nome": "Análise de Sistemas de Energia I",
+         "creditos": 4,
+         "prereqs": [["ENG4422"]]
+    },
+    { 
+        "codigo": "ENG4438",
+         "nome": "Análise de Sistemas de Energia II",
+         "creditos": 4,
+         "prereqs": [["ENG4437"]]
+    },
+    { 
+        "codigo": "ENG4440",
+         "nome": "Redes Elétricas Inteligentes",
+         "creditos": 4,
+         "prereqs": [["ENG4422"]]
+    },
+    { 
+        "codigo": "ENG4444",
+         "nome": "Eletrônica Analógica I",
+         "creditos": 4,
+         "prereqs": [["ENG4421"]]
+    },
+    { 
+        "codigo": "ENG4446",
+         "nome": "Eletrônica Analógica II",
+         "creditos": 4,
+         "prereqs": [["ENG4444"]]
+    },
+    { 
+        "codigo": "ENG4448",
+         "nome": "Computação Digital",
+         "creditos": 4,
+         "prereqs": [["ENG4419"]]
+    },
+    { 
+        "codigo": "ENG4451",
+         "nome": "Arquitetura de Computadores",
+         "creditos": 4,
+         "prereqs": [["ENG4419"]]
+    },
+    { 
+        "codigo": "ENG4456",
+         "nome": "Inteligência Computacional",
+         "creditos": 4,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "ENG4465",
+         "nome": "Processos Estocásticos Markovianos",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG4466",
+         "nome": "Teoria Inferência Estatística",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG4467",
+         "nome": "Otimização",
+         "creditos": 4,
+         "prereqs": [["MAT4162"]]
+    },
+    { 
+        "codigo": "ENG4468",
+         "nome": "Programação Linear Inteira",
+         "creditos": 4,
+         "prereqs": [["ENG4467"]]
+    },
+    { 
+        "codigo": "ENG4469",
+         "nome": "Análise de Séries Temporais",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG4470",
+         "nome": "Modelos de Regressão",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG4471",
+         "nome": "Controle Discreto",
+         "creditos": 4,
+         "prereqs": [["ENG4719"]]
+    },
+    { 
+        "codigo": "ENG4475",
+         "nome": "Antenas e Propagação",
+         "creditos": 4,
+         "prereqs": [["ENG4407"]]
+    },
+    { 
+        "codigo": "ENG4491",
+         "nome": "Engenharia de Audio",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG4494",
+         "nome": "Comunicações Ópticas",
+         "creditos": 4,
+         "prereqs": [["ENG4405", "ENG4411"]]
+    },
+    { 
+        "codigo": "ENG4495",
+         "nome": "Comunicações Móveis",
+         "creditos": 4,
+         "prereqs": [["ENG4411"]]
+    },
+    { 
+        "codigo": "ENG4500",
+         "nome": "Administração e Economia para Engenheiros",
+         "creditos": 4,
+         "prereqs": [["CTC4002"]]
+    },
+    { 
+        "codigo": "ENG4501",
+         "nome": "Probabilidade e Estatística Computacional",
+         "creditos": 4,
+         "prereqs": [["INF1037", "MAT4161"]]
+    },
+    { 
+        "codigo": "ENG4502",
+         "nome": "Introdução à Ciência de Dados",
+         "creditos": 4,
+         "prereqs": [["INF1037", "MAT4200"]]
+    },
+    { 
+        "codigo": "ENG4506",
+         "nome": "Métodos Estatísticos",
+         "creditos": 6,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG4509",
+         "nome": "Heurísticas para Otimização Combinada",
+         "creditos": 3,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "ENG4512",
+         "nome": "Análise de Decisão e Risco",
+         "creditos": 0,
+         "prereqs": [["ENG4503", "ENG4504"]]
+    },
+    { 
+        "codigo": "ENG4514",
+         "nome": "Sistema de Informação Gerenciais",
+         "creditos": 3,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "ENG4700",
+         "nome": "Estática",
+         "creditos": 4,
+         "prereqs": [["MAT4162"]]
+    },
+    { 
+        "codigo": "ENG4703",
+         "nome": "Mecânica dos Sólidos I",
+         "creditos": 4,
+         "prereqs": [["ENG4700"]]
+    },
+    { 
+        "codigo": "ENG4704",
+         "nome": "Mecânica dos Sólidos II",
+         "creditos": 4,
+         "prereqs": [["ENG4703"]]
+    },
+    { 
+        "codigo": "ENG4705",
+         "nome": "Dinâmica de Corpos Rígidos",
+         "creditos": 4,
+         "prereqs": [["ENG4700", "MAT4174"]]
+    },
+    { 
+        "codigo": "ENG4710",
+         "nome": "Vibrações Mecânicas",
+         "creditos": 4,
+         "prereqs": [["ENG4705", "MAT4202"]]
+    },
+    { 
+        "codigo": "ENG4718",
+         "nome": "Modelagem de Sistemas Dinâmicos",
+         "creditos": 4,
+         "prereqs": [["ENG4011", "ENG4705"]]
+    },
+    { 
+        "codigo": "ENG4719",
+         "nome": "Controle de Sistemas",
+         "creditos": 4,
+         "prereqs": [["ENG4407", "ENG4421"]]
+    },
+    { 
+        "codigo": "ENG4731",
+         "nome": "Fundamentos de Mecatrônica",
+         "creditos": 4,
+         "prereqs": [["MAT4174"]]
+    },
+    { 
+        "codigo": "ENG4732",
+         "nome": "Robótica Industrial",
+         "creditos": 4,
+         "prereqs": [["ENG4419"]]
+    },
+    { 
+        "codigo": "ENG4782",
+         "nome": "Sistemas de Atuação",
+         "creditos": 4,
+         "prereqs": [["FIS4003"]]
+    },
+    { 
+        "codigo": "ENG4784",
+         "nome": "Automação de Manufatura",
+         "creditos": 4,
+         "prereqs": [["ENG4782"]]
+    },
+    { 
+        "codigo": "EXT1100",
+         "nome": "Tópicos Especiais de Extensão",
+         "creditos": 1,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EXT1401",
+         "nome": "Extensão Pré-Vestibular Comunitário I",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EXT1402",
+         "nome": "Extensão Pré-Vestibular Comunitário II",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EXT1403",
+         "nome": "Top Especiais Projeto Rondon",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EXT1404",
+         "nome": "Top Especiais Política Teoria Prática Extensão",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "EXT1405",
+         "nome": "Top Especiais Cidades e Patrimônio Cultural",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1000",
+         "nome": "Introdução a Filosofia",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1002",
+         "nome": "Filosofia da Ciência",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1005",
+         "nome": "Filosofia da Ciência (para CTC)",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1006",
+         "nome": "História do Pensamento",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1200",
+         "nome": "História da Filosofia I",
+         "creditos": 6,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1210",
+         "nome": "Corrente do Pensamento Contemporâneo I",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1211",
+         "nome": "Corrente do Pensamento Contemporâneo II",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1212",
+         "nome": "Corrente do Pensamento Contemporâneo III",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1251",
+         "nome": "Seminário",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1304",
+         "nome": "Lógica I",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1310",
+         "nome": "Lógica II",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1315",
+         "nome": "Lógica Matemática I",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1318",
+         "nome": "Fundamentos da Matemática",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1400",
+         "nome": "Filosofia Geral I",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1500",
+         "nome": "Filosofia da Natureza",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1800",
+         "nome": "Filosofia da Cultura",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1801",
+         "nome": "Filosofia da História",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1802",
+         "nome": "Filosofia da Linguagem",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1803",
+         "nome": "Filosofia da Arte",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1813",
+         "nome": "Filosofia Social",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIL1814",
+         "nome": "Filosofia Política",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIS4001",
+         "nome": "Física I",
+         "creditos": 5,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "FIS4002",
+         "nome": "Física II",
+         "creditos": 5,
+         "prereqs": [["FIS4001", "MAT4161"]]
+    },
+    { 
+        "codigo": "FIS4003",
+         "nome": "Física III",
+         "creditos": 6,
+         "prereqs": [["FIS4002"]]
+    },
+    { 
+        "codigo": "IND2601",
+         "nome": "Análise de Decisão e Risco",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "IND2602",
+         "nome": "Heurísticas e Metaheuristicas",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "IND2605",
+         "nome": "Programação Matemática",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "IND2616",
+         "nome": "Séries Temporais",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "IND2621",
+         "nome": "Optimization Under Uncertainty",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "IND2622",
+         "nome": "Ciência de Dados Processo de Negocios",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "INF1009",
+         "nome": "Lógica para Computação",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "INF1010",
+         "nome": "Estruturas de Dados Avançados",
+         "creditos": 4,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "INF1012",
+         "nome": "Modelagem de Dados",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "INF1018",
+         "nome": "Software Básico",
+         "creditos": 4,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "INF1019",
+         "nome": "Sistemas de Computação",
+         "creditos": 4,
+         "prereqs": [["INF1018"]]
+    },
+    { 
+        "codigo": "INF1022",
+         "nome": "Analisadores Léxicos e Sintáticos",
+         "creditos": 4,
+         "prereqs": [["INF1009", "INF1037"]]
+    },
+    { 
+        "codigo": "INF1032",
+         "nome": "Introdução a Ciência de Dados",
+         "creditos": 4,
+         "prereqs": [["INF1037", "MAT4200"]]
+    },
+    { 
+        "codigo": "INF1037",
+         "nome": "Programação em C",
+         "creditos": 4,
+         "prereqs": [["CTC4002"]]
+    },
+    { 
+        "codigo": "INF1038",
+         "nome": "Aprendizado Automático",
+         "creditos": 4,
+         "prereqs": [["ENG4501", "INF1037", "MAT4200"]]
+    },
+    { 
+        "codigo": "INF1041",
+         "nome": "Engenharia de Software",
+         "creditos": 4,
+         "prereqs": [["INF1010", "INF1383", "INF1636"]]
+    },
+    { 
+        "codigo": "INF1301",
+         "nome": "Programação Modular",
+         "creditos": 4,
+         "prereqs": [["INF1037"]]
+    },
+    { 
+        "codigo": "INF1316",
+         "nome": "Sistemas Operacionais",
+         "creditos": 4,
+         "prereqs": [["INF1018"]]
+    },
+    { 
+        "codigo": "INF1317",
+         "nome": "Redes de Computadores",
+         "creditos": 4,
+         "prereqs": [["INF1019"]]
+    },
+    { 
+        "codigo": "INF1383",
+         "nome": "Banco de Dados",
+         "creditos": 4,
+         "prereqs": [["INF1012", "INF1037"]]
+    },
+    { 
+        "codigo": "INF1406",
+         "nome": "Programação Distribuida Concorrente",
+         "creditos": 4,
+         "prereqs": [["INF1636"]]
+    },
+    { 
+        "codigo": "INF1407",
+         "nome": "Programação para a Web",
+         "creditos": 4,
+         "prereqs": [["INF1636"]]
+    },
+    { 
+        "codigo": "INF1608",
+         "nome": "Análise Numérica I",
+         "creditos": 4,
+         "prereqs": [["INF1037", "MAT4200"]]
+    },
+    { 
+        "codigo": "INF1629",
+         "nome": "Princípios Engenharia de Software",
+         "creditos": 4,
+         "prereqs": [["INF1301"]]
+    },
+    { 
+        "codigo": "INF1631",
+         "nome": "Estruturas Discretas",
+         "creditos": 4,
+         "prereqs": [["INF1037", "MAT1320"]]
+    },
+    { 
+        "codigo": "INF1636",
+         "nome": "Programação Orientada a Objetos",
+         "creditos": 4,
+         "prereqs": [["INF1301"]]
+    },
+    { 
+        "codigo": "INF1640",
+         "nome": "Redes de Comunicação de Dados",
+         "creditos": 4,
+         "prereqs": [["ENG4419"]]
+    },
+    { 
+        "codigo": "INF1721",
+         "nome": "Análise de Algoritmos",
+         "creditos": 4,
+         "prereqs": [["INF1037", "INF1636"]]
+    },
+    { 
+        "codigo": "INF1761",
+         "nome": "Computação Gráfica",
+         "creditos": 4,
+         "prereqs": [["INF1037", "MAT4200"]]
+    },
+    { 
+        "codigo": "INF1771",
+         "nome": "Inteligência Artificial",
+         "creditos": 4,
+         "prereqs": [["INF1009", "INF1010"]]
+    },
+    { 
+        "codigo": "INF2424",
+         "nome": "Visualização de Informação",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "INF2922",
+         "nome": "Topicos Engenharia de Software VI",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1016",
+         "nome": "Legislação Social",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1022",
+         "nome": "Noções de Direito para Empreendimento",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1111",
+         "nome": "Direito Ambiental",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1240",
+         "nome": "Negociação, Mediação/Arbitragem",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1250",
+         "nome": "Mercado de Capitais",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1251",
+         "nome": "Propriedade Cultural",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "JUR1653",
+         "nome": "Contratos Internacionais",
+         "creditos": 2,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "MAT1223",
+         "nome": "Espaços Vetor/Transf Lineares",
+         "creditos": 4,
+         "prereqs": [["MAT4200"]]
+    },
+    { 
+        "codigo": "MAT1320",
+         "nome": "Introdução Matemática Discreta",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "MAT4161",
+         "nome": "Cálculo a uma Variável",
+         "creditos": 6,
+         "prereqs": [["CTC4002"]]
+    },
+    { 
+        "codigo": "MAT4162",
+         "nome": "Cálculo a Várias Variáveis I",
+         "creditos": 4,
+         "prereqs": [["MAT4161"]]
+    },
+    { 
+        "codigo": "MAT4163",
+         "nome": "Cálculo a Várias Variáveis II",
+         "creditos": 4,
+         "prereqs": [["MAT4162", "MAT4200"]]
+    },
+    { 
+        "codigo": "MAT4174",
+         "nome": "Equações Diferenciais, Sinais e Sistemas",
+         "creditos": 6,
+         "prereqs": [["MAT4161", "MAT4200"]]
+    },
+    { 
+        "codigo": "MAT4200",
+         "nome": "Álgebra Linear I",
+         "creditos": 4,
+         "prereqs": [["CTC4002"]]
+    },
+    { 
+        "codigo": "MAT4202",
+         "nome": "Álgebra Linear II",
+         "creditos": 4,
+         "prereqs": [["MAT4200"]]
+    },
+    { 
+        "codigo": "MAT4231",
+         "nome": "Algebra Linear Numérica",
+         "creditos": 4,
+         "prereqs": [["CTC4002", "MAT4202"]]
+    },
+    { 
+        "codigo": "MAT4303",
+         "nome": "Elementos Matemáticos de Computação Gráfica",
+         "creditos": 4,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "MAT4330",
+         "nome": "Matemática para Aprendizado de Máquina",
+         "creditos": 4,
+         "prereqs": [["MAT4161", "MAT4200"]]
+    },
+    { 
+        "codigo": "MEC2401",
+         "nome": "Introdução a Robótica",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "MEC2402",
+         "nome": "Controle de Sistemas Robóticos",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "MEC2403",
+         "nome": "Otimização: Algoritmo e Aplicação na Engenharia Mecânica",
+         "creditos": 3,
+         "prereqs": [[]]
+    }
+]

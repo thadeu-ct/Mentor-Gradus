@@ -1,0 +1,32 @@
+{
+  "Ciência de Dados": {
+    "obrigatórias": [],
+    "optativas": [
+      ["CDA0100", 3],
+      ["CDA0101", 3],
+      ["CDA0102", 3],
+      ["CDA0103", 3],
+      ["CDA0104", 3],
+      ["CDA0105", 10]
+   ]
+  },
+  "Métodos de Apoio à Decisão": {
+    "obrigatórias": [],
+    "optativas": [
+      ["MAP0100", 8],
+      ["MAP0101", 8],
+      ["MAP0102", 8]
+    ]
+  },
+  "Construção de Software": {
+    "obrigatórias": [
+      "CTC4002",
+      "INF1010",
+      "INF1037",
+      "INF1301"
+    ],
+    "optativas": [
+      ["INF0501", 12]
+    ]
+  }
+} 
