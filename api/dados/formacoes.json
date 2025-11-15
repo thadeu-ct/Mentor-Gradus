@@ -70,78 +70,8 @@
     "eletivas": [
       ["ELL0100", 12],
       ["ELU0900", 4]
-    ]
-  },
-  "Engenharia Elétrica": {
-    "obrigatórias": [
-      "CRE1200",
-      "CRE1241",
-      "CRE1275",
-      "CTC4001",
-      "CTC4002",
-      "CTC4003",
-      "EMP1310",
-      "EMP1320",
-      "EMP1330",
-      "ENG4007",
-      "ENG4010",
-      "ENG4011",
-      "ENG4021",
-      "ENG4025",
-      "ENG4030",
-      "ENG4033",
-      "ENG4040",
-      "ENG4051",
-      "ENG4061",
-      "ENG4142",
-      "ENG4143",
-      "ENG4155",
-      "ENG4405",
-      "ENG4407",
-      "ENG4411",
-      "ENG4412",
-      "ENG4415",
-      "ENG4418",
-      "ENG4419",
-      "ENG4420",
-      "ENG4421",
-      "ENG4422",
-      "ENG4424",
-      "ENG4444",
-      "ENG4446",
-      "ENG4448",
-      "ENG4451",
-      "ENG4471",
-      "ENG4500",
-      "ENG4501",
-      "ENG4502",
-      "FIS4001",
-      "FIS4002",
-      "FIS4003",
-      "INF1009",
-      "INF1012",
-      "INF1037",
-      "INF1383",
-      "MAT4161",
-      "MAT4162",
-      "MAT4163",
-      "MAT4174",
-      "MAT4200",
-      "MAT4202"
     ],
-    "optativas": [
-      ["CRE0712", 4],
-      ["ENG0422", 4],
-      ["ENG0424", 4],
-      ["ENG0426", 20],
-      ["EXT0100", 5],
-      ["FIL0300", 4],
-      ["JUR0205", 2]
-    ],
-    "eletivas": [
-      ["ELL0100", 4],
-      ["ELU0900", 4]
-    ]
+    "enfase": {}
   },
   "Engenharia de Controle e Automação": {
     "obrigatórias": [
@@ -212,6 +142,178 @@
     "eletivas": [
       ["ELL0100", 3],
       ["ELU0900", 4]
-    ]
+    ],
+    "enfase": {}
+  },
+  "Engenharia de Produção": {
+    "obrigatórias": [
+      "CRE1200",
+      "CRE1241",
+      "CRE1275",
+      "CTC4001",
+      "CTC4002",
+      "CTC4003",
+      "EMP1310",
+      "EMP1320",
+      "EMP1330",
+      "ENG4007",
+      "ENG4010",
+      "ENG4011",
+      "ENG4021",
+      "ENG4025",
+      "ENG4030",
+      "ENG4033",
+      "ENG4040",
+      "ENG4051",
+      "ENG4061",
+      "ENG4142",
+      "ENG4143",
+      "ENG4155",
+      "ENG4405",
+      "ENG4407",
+      "ENG4411",
+      "ENG4412",
+      "ENG4415",
+      "ENG4418",
+      "ENG4419",
+      "ENG4420",
+      "ENG4421",
+      "ENG4422",
+      "ENG4424",
+      "ENG4444",
+      "ENG4446",
+      "ENG4448",
+      "ENG4451",
+      "ENG4471",
+      "ENG4500",
+      "ENG4501",
+      "ENG4502",
+      "FIS4001",
+      "FIS4002",
+      "FIS4003",
+      "INF1009",
+      "INF1012",
+      "INF1037",
+      "INF1383",
+      "MAT4161",
+      "MAT4162",
+      "MAT4163",
+      "MAT4174",
+      "MAT4200",
+      "MAT4202"
+    ],
+    "optativas": [
+      ["CRE0712", 4],
+      ["ENG0422", 4],
+      ["ENG0424", 4],
+      ["ENG0426", 20],
+      ["EXT0100", 5],
+      ["FIL0300", 4],
+      ["JUR0205", 2]
+    ],
+    "eletivas": [
+      ["ELL0100", 4],
+      ["ELU0900", 4]
+    ],
+    "enfase": {
+      "Finanças e Análise de Risco (FAR)": {
+        "obrigatórias": [],
+        "optativas": [],
+        "eletivas": []
+      },
+      "Sistemas Produtivos (SPR)": {
+        "obrigatórias": [],
+        "optativas": [],
+        "eletivas": []
+      },
+      "Pesquisa Operacional & Analytics (POA)": {
+        "obrigatórias": [],
+        "optativas": [],
+        "eletivas": []
+      }
+    }
+  },
+  "Engenharia Elétrica": {
+    "obrigatórias": [
+      "CRE1200",
+      "CRE1241",
+      "CRE1275",
+      "CTC4001",
+      "CTC4002",
+      "CTC4003",
+      "EMP1310",
+      "EMP1320",
+      "EMP1330",
+      "ENG4007",
+      "ENG4010",
+      "ENG4011",
+      "ENG4021",
+      "ENG4025",
+      "ENG4030",
+      "ENG4033",
+      "ENG4040",
+      "ENG4051",
+      "ENG4061",
+      "ENG4142",
+      "ENG4143",
+      "ENG4155",
+      "ENG4405",
+      "ENG4407",
+      "ENG4411",
+      "ENG4412",
+      "ENG4415",
+      "ENG4418",
+      "ENG4419",
+      "ENG4420",
+      "ENG4421",
+      "ENG4422",
+      "ENG4424",
+      "ENG4444",
+      "ENG4446",
+      "ENG4448",
+      "ENG4451",
+      "ENG4471",
+      "ENG4500",
+      "ENG4501",
+      "ENG4502",
+      "FIS4001",
+      "FIS4002",
+      "FIS4003",
+      "INF1009",
+      "INF1012",
+      "INF1037",
+      "INF1383",
+      "MAT4161",
+      "MAT4162",
+      "MAT4163",
+      "MAT4174",
+      "MAT4200",
+      "MAT4202"
+    ],
+    "optativas": [
+      ["CRE0712", 4],
+      ["ENG0422", 4],
+      ["ENG0424", 4],
+      ["ENG0426", 20],
+      ["EXT0100", 5],
+      ["FIL0300", 4],
+      ["JUR0205", 2]
+    ],
+    "eletivas": [
+      ["ELL0100", 4],
+      ["ELU0900", 4]
+    ],
+    "enfase": {
+      "Eletrônica e Sistemas Computacionais Avançados (ESC)": {
+        "obrigatórias": [],
+        "optativas": [], 
+        "eletivas": []
+      },
+      "Sistemas Elétricos e Mercados de Energia (SEE)": {
+        "obrigatórias": [],
+        "optativas": [],
+        "eletivas": []
+      }
+    }
   }
 }
