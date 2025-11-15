@@ -300,15 +300,9 @@ function getMateriasNoBoard() {
     return Array.from(cardsNoBoard).map(card => card.dataset.codigo); 
 }
 
-// --- INÍCIO DA CORREÇÃO ---
-/**
- * Pega TODAS as matérias "cursadas" (Obrigatórias + Escolhidas + No Board)
- * Esta é a definição correta do que o usuário "tem".
- */
 function getSetGlobalDeMateriasCursadas() {
     const materiasNoPool = [];
     document.querySelectorAll('#pool-list-container .pool-item').forEach(item => {
-        // (Page-aware: checa se é item do planner ou da grade)
         const codigo = item.dataset.codigoOriginal || item.id.replace('pool-item-', '');
         materiasNoPool.push(codigo);
     });
