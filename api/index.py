@@ -29,24 +29,29 @@ def api_processar_estado():
     data = request.json
     formacoes = data.get('formacoes', [])
     dominios = data.get('dominios', [])
-    # Recebe as matérias que o usuário JÁ COLOCOU no board
+    
+    # --- NOVA LINHA ---
+    enfase_escolhida = data.get('enfase_escolhida', None) # Recebe a ênfase
+    # --- FIM DA NOVA LINHA ---
+    
     pre_selecionadas = data.get('pre_selecionadas', []) 
 
     print("API: /api/processar-estado chamado")
-    # Roda nossa lógica principal do dados.py
+    
+    # --- CHAMADA ATUALIZADA ---
     obrigatorias_cods, optativas_cods, grupos_pendentes = dados.processar_selecao(
-        formacoes, dominios, pre_selecionadas,
+        formacoes, dominios, enfase_escolhida, pre_selecionadas,
         dados_form, dados_dom, dados_mat_map, dados_opt
     )
+    # --- FIM DA ATUALIZAÇÃO ---
 
-    # Converte os códigos em objetos de matéria completos
     obrigatorias_obj = [dados_mat_map[cod] for cod in obrigatorias_cods if cod in dados_mat_map]
     optativas_obj = [dados_mat_map[cod] for cod in optativas_cods if cod in dados_mat_map]
 
     return jsonify({
         "obrigatorias": obrigatorias_obj,
-        "optativas_escolhidas": optativas_obj, # Optativas da Fase 1
-        "grupos_pendentes": grupos_pendentes   # Grupos para Fase 2
+        "optativas_escolhidas": optativas_obj,
+        "grupos_pendentes": grupos_pendentes 
     })
 
 # --- Endpoint 2: Formulário de Optativas ---
@@ -92,5 +97,5 @@ def api_get_opcoes_grupo():
 
 # --- Roda o servidor ---
 if __name__ == '__main__':
-    print("Iniciando servidor Flask em http://127.0.0.1:5000")
+    print("Iniciando servidor Flask em Vercel")
     app.run(debug=True, port=5000)

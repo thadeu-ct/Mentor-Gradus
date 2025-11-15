@@ -76,37 +76,74 @@ def carregar_dados_json():
 
 # --- FUNÇÕES DE LÓGICA PURA ---
 
-def coletarDados(formacoes: list, dominios: list, dados_formacao: dict, dados_dominio: dict):
+def coletarDados(formacoes: list, dominios: list, enfase_escolhida: str, dados_formacao: dict, dados_dominio: dict):
     """Coleta as matérias obrigatórias base (União)."""
     materias = set()
     for formacao in formacoes:
         if formacao in dados_formacao:
             materias.update(dados_formacao[formacao].get("obrigatórias", []))
+            if enfase_escolhida:
+                enfase_data = dados_formacao[formacao].get("enfase", {}).get(enfase_escolhida, {})
+                materias.update(enfase_data.get("obrigatórias", []))
     for dominio in dominios:
         if dominio in dados_dominio:
             materias.update(dados_dominio[dominio].get("obrigatórias", []))
     return materias
 
-def coletarGruposOptativos(formacoes: list, dominios: list, dados_form: dict, dados_dom: dict):
-    """Coleta e estrutura todos os grupos de optativas necessários."""
+def coletarGruposOptativos(formacoes: list, dominios: list, enfase_escolhida: str, dados_form: dict, dados_dom: dict):
+    """Coleta e estrutura todos os grupos de optativas (Tronco Comum + Ênfase)."""
     grupos = {}
     
+    # 1. Coleta do Tronco Comum (Optativas e Eletivas)
     for formacao in formacoes:
         if formacao in dados_form:
-            for grupo_opt in dados_form[formacao].get("optativas", []):
-                codigo_grupo = grupo_opt[0]
-                creditos_nec = grupo_opt[1]
+            formacao_data = dados_form[formacao]
+            
+            # Coleta Optativas do Tronco
+            for grupo_opt in formacao_data.get("optativas", []):
+                codigo_grupo, creditos_nec = grupo_opt[0], grupo_opt[1]
                 if codigo_grupo not in grupos or grupos[codigo_grupo]["creditos_necessarios"] < creditos_nec: 
                     grupos[codigo_grupo] = {
                         "creditos_necessarios": creditos_nec, "creditos_atuais": 0,
                         "materias_cursadas": [], "fonte": "Optativa de %s" % formacao
                     }
+            
+            # Coleta Eletivas do Tronco
+            for grupo_ele in formacao_data.get("eletivas", []):
+                codigo_grupo, creditos_nec = grupo_ele[0], grupo_ele[1]
+                if codigo_grupo not in grupos or grupos[codigo_grupo]["creditos_necessarios"] < creditos_nec: 
+                    grupos[codigo_grupo] = {
+                        "creditos_necessarios": creditos_nec, "creditos_atuais": 0,
+                        "materias_cursadas": [], "fonte": "Eletiva de %s" % formacao
+                    }
+            
+            # 2. Coleta da Ênfase (se houver)
+            if enfase_escolhida:
+                enfase_data = formacao_data.get("enfase", {}).get(enfase_escolhida, {})
+                
+                # Coleta Optativas da Ênfase
+                for grupo_opt in enfase_data.get("optativas", []):
+                    codigo_grupo, creditos_nec = grupo_opt[0], grupo_opt[1]
+                    if codigo_grupo not in grupos or grupos[codigo_grupo]["creditos_necessarios"] < creditos_nec: 
+                        grupos[codigo_grupo] = {
+                            "creditos_necessarios": creditos_nec, "creditos_atuais": 0,
+                            "materias_cursadas": [], "fonte": "Optativa de %s" % enfase_escolhida
+                        }
+                
+                # Coleta Eletivas da Ênfase
+                for grupo_ele in enfase_data.get("eletivas", []):
+                    codigo_grupo, creditos_nec = grupo_ele[0], grupo_ele[1]
+                    if codigo_grupo not in grupos or grupos[codigo_grupo]["creditos_necessarios"] < creditos_nec: 
+                        grupos[codigo_grupo] = {
+                            "creditos_necessarios": creditos_nec, "creditos_atuais": 0,
+                            "materias_cursadas": [], "fonte": "Eletiva de %s" % enfase_escolhida
+                        }
 
+    # 3. Coleta dos Domínios
     for dominio in dominios:
         if dominio in dados_dom:
             for grupo_opt in dados_dom[dominio].get("optativas", []):
-                codigo_grupo = grupo_opt[0]
-                creditos_nec = grupo_opt[1]
+                codigo_grupo, creditos_nec = grupo_opt[0], grupo_opt[1]
                 if codigo_grupo not in grupos or grupos[codigo_grupo]["creditos_necessarios"] < creditos_nec:
                     grupos[codigo_grupo] = {
                         "creditos_necessarios": creditos_nec, "creditos_atuais": 0,
@@ -140,25 +177,32 @@ def materia_esta_liberada(codigo_materia, obrigatorias_set, dados_mat_map):
 
 # --- FUNÇÃO PRINCIPAL DE PROCESSAMENTO (ATUALIZADA) ---
 
-def processar_selecao(formacoes, dominios, materias_pre_selecionadas, dados_form, dados_dom, dados_mat_map, dados_opt):
+# (Substitua sua função 'processar_selecao')
+def processar_selecao(formacoes, dominios, enfase_escolhida, materias_pre_selecionadas, dados_form, dados_dom, dados_mat_map, dados_opt):
     """
     Função principal que roda toda a lógica de backend.
     Recebe as seleções do usuário e retorna o estado calculado.
     """
     
-    # 1. Pega obrigatórias base
-    materias_obrigatorias_base = coletarDados(formacoes, dominios, dados_form, dados_dom)
+    # 1. Pega obrigatórias base (JÁ INCLUI ÊNFASE)
+    materias_obrigatorias_base = coletarDados(
+        formacoes, dominios, enfase_escolhida, dados_form, dados_dom
+    )
     
-    # 2. Adiciona pré-selecionadas (do front-end)
+    # 2. Adiciona pré-selecionadas
     materias_obrigatorias_set = materias_obrigatorias_base.union(set(materias_pre_selecionadas))
     
-    # --- INÍCIO DA MUDANÇA ---
-    # Identifica quais pré-selecionadas são, na verdade, optativas manuais
     optativas_manuais = set(materias_pre_selecionadas) - materias_obrigatorias_base
-    # --- FIM DA MUDANÇA ---
     
-    # 3. Coleta grupos e faz 1ª passagem
-    grupos_a_preencher = coletarGruposOptativos(formacoes, dominios, dados_form, dados_dom)
+    # 3. Coleta grupos (JÁ INCLUI ÊNFASE)
+    grupos_a_preencher = coletarGruposOptativos(
+        formacoes, dominios, enfase_escolhida, dados_form, dados_dom
+    )
+    
+    # (O restante da função 'processar_selecao' continua EXATAMENTE IGUAL...)
+    # ... (bloco 'for codigo_grupo, info_grupo in grupos_a_preencher.items():')
+    # ... (bloco 'while True:')
+    # ... (bloco '5. Preparar o retorno')
     
     for codigo_grupo, info_grupo in grupos_a_preencher.items():
         if codigo_grupo in dados_opt:
@@ -170,8 +214,7 @@ def processar_selecao(formacoes, dominios, materias_pre_selecionadas, dados_form
                     info_grupo["materias_cursadas"].append(materia_codigo)
                     info_grupo["creditos_atuais"] += dados_mat_map.get(materia_codigo, {}).get("creditos", 0)
 
-    # 4. FASE 1: Loop de escolha automática (Duplicatas)
-    materias_optativas_automaticas = [] # Antiga 'materias_optativas_escolhidas'
+    materias_optativas_automaticas = [] 
     
     while True:
         grupos_pendentes = []
@@ -241,14 +284,8 @@ def processar_selecao(formacoes, dominios, materias_pre_selecionadas, dados_form
                 info_grupo["materias_cursadas"].append(materia_codigo)
                 info_grupo["creditos_atuais"] += materia_creditos
     
-    # 5. Preparar o retorno
-    
     materias_obrigatorias_finais = list(materias_obrigatorias_base)
-    
-    # --- INÍCIO DA MUDANÇA ---
-    # A lista de optativas é a SOMA das automáticas (Fase 1) + manuais (Fase 2)
     optativas_finais = list(set(materias_optativas_automaticas) | optativas_manuais)
-    # --- FIM DA MUDANÇA ---
 
     grupos_pendentes_finais = []
     for codigo_grupo, info_grupo in sorted(grupos_a_preencher.items()):
