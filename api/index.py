@@ -111,6 +111,5 @@ def api_get_dominios():
     return jsonify(dados_dom)
 
 # --- Roda o servidor ---
-if __name__ == '__main__':
-    print("Iniciando servidor Flask em Vercel")
-    app.run(debug=True, port=5000)
+def handler(request, context):
+    return app(request, context)

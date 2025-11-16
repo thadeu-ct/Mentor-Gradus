@@ -6,13 +6,13 @@
       "use": "@vercel/python",
       "config": {
         "includeFiles": [
-          "api/dados/**"
+          "api/dados/**",
+          "api/dados.py"
         ]
       }
     }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(.*)", "destination": "/$1" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "api/index.py" }
   ]
 }
