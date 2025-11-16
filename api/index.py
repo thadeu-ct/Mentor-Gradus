@@ -109,7 +109,3 @@ def api_get_dominios():
         return jsonify({"erro": "Erro no servidor, dados não carregados"}), 500
     
     return jsonify(dados_dom)
-
-# --- Roda o servidor ---
-def handler(request, context):
-    return app(request, context)
