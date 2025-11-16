@@ -9,6 +9,10 @@
           "api/dados/**"
         ]
       }
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
