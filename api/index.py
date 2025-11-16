@@ -88,6 +88,28 @@ def api_get_opcoes_grupo():
     
     return jsonify(opcoes_validas)
 
+# --- Endpoint 3: Enviar dados de Formações ---
+@app.route("/api/get-formacoes", methods=['GET'])
+def api_get_formacoes():
+    """
+    Envia a lista completa de formações e suas ênfases.
+    """
+    if not DADOS_CARREGADOS:
+        return jsonify({"erro": "Erro no servidor, dados não carregados"}), 500
+    
+    return jsonify(dados_form)
+
+# --- Endpoint 4: Enviar dados de Domínios ---
+@app.route("/api/get-dominios", methods=['GET'])
+def api_get_dominios():
+    """
+    Envia a lista completa de domínios.
+    """
+    if not DADOS_CARREGADOS:
+        return jsonify({"erro": "Erro no servidor, dados não carregados"}), 500
+    
+    return jsonify(dados_dom)
+
 # --- Roda o servidor ---
 if __name__ == '__main__':
     print("Iniciando servidor Flask em Vercel")

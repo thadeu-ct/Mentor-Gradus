@@ -1,5 +1,7 @@
 // Banco de dados local de matérias (cache)
 window.materiasData = []; 
+let dadosFormacoes = {};
+let dadosDominios = {};
 let periodCounter = 2;
 const MAX_CREDITS_PER_PERIOD = 30;
 
@@ -145,20 +147,21 @@ function renderGradePoolItem(materia) {
     if (!poolContainer) return;
 
     const item = document.createElement('div');
-    item.className = 'pool-item';
-
-    // Precisamos saber se a matéria é obrigatória ou optativa
-    // Esta é uma suposição; vamos precisar carregar esse 'tipo'
-    const tipo = materia.tipo || 'optativa'; 
+    item.className = 'pool-item'; // Reutiliza o estilo base do pool
+    
+    // Damos a cor (azul/laranja) do planner
+    const tipo = materia.tipo || 'optativa'; // (Precisamos carregar o 'tipo'
     item.classList.add(tipo === 'obrigatoria' ? 'pool-item-obrigatoria' : 'pool-item-optativa');
 
-    // ID único para cada "bloco de 1h" (crédito)
-    const count = poolContainer.querySelectorAll(`[data-codigo-original="${materia.codigo}"]`).length + 1;
+    // ID único para cada "bloco de 1h"
+    // Ex: fis4001_1, fis4001_2
+    const count = poolContainer.querySelectorAll(`[data-codigo="${materia.codigo}"]`).length + 1;
     item.id = `grade-pool-item-${materia.codigo}_${count}`;
     item.draggable = true; 
 
+    // Salva o código original no dataset para o dragstart
     item.dataset.codigoOriginal = materia.codigo;
-
+    
     item.innerHTML = `
         <div class="pool-item-main-content">
             <span class="pool-item-code">${materia.codigo}</span>
@@ -197,15 +200,18 @@ function createGradeCard(materia, draggedItem) {
  * Funções específicas do PLANNER.HTML
  */
 function initializePlannerPage() {
-    initializeChipSelectors(); 
-    initializeBoardControls(); 
-    // Adiciona 'listeners' de drop às colunas e ao pool
-    document.querySelectorAll('.column-content, .pool-list').forEach(addDragEventsToTarget);
-    // Carrega os dados do backend
-    processarEstadoDoBackend(); 
+    carregarDadosIniciais().then(() => {
+        initializeChipSelectors(); 
+        initializeBoardControls(); 
+        document.querySelectorAll('.column-content, .pool-list').forEach(addDragEventsToTarget);
+        processarEstadoDoBackend(); 
+    }).catch(err => {
+        console.error("Falha ao inicializar dados:", err);
+        alert("Erro ao carregar dados do servidor. A página pode não funcionar.");
+    });
 }
 
-/**
+/*
  * Funções específicas do GRADE.HTML
  */
 function initializeGradePage() {
@@ -213,6 +219,54 @@ function initializeGradePage() {
     document.querySelectorAll('.grid-dropzone, .pool-list').forEach(addDragEventsToTarget);
 
     // (PRÓXIMO PASSO: carregar dados dos períodos aqui)
+}
+
+async function carregarDadosIniciais() {
+    console.log("Carregando dados iniciais do servidor...");
+    try {
+        // 1. Busca Formações
+        const formResponse = await fetch('/api/get-formacoes');
+        if (!formResponse.ok) throw new Error('Falha ao buscar formações');
+        dadosFormacoes = await formResponse.json();
+
+        // 2. Busca Domínios
+        const domResponse = await fetch('/api/get-dominios');
+        if (!domResponse.ok) throw new Error('Falha ao buscar domínios');
+        dadosDominios = await domResponse.json();
+
+        // 3. Popula os dropdowns
+        popularDropdown('#formacoes-options', Object.keys(dadosFormacoes));
+        popularDropdown('#dominios-options', Object.keys(dadosDominios));
+        
+        console.log("Dados iniciais carregados:", { dadosFormacoes, dadosDominios });
+
+    } catch (error) {
+        console.error("Erro em carregarDadosIniciais:", error);
+        // Propaga o erro para o .catch() do initializePlannerPage
+        return Promise.reject(error);
+    }
+}
+
+// (NOVO) Helper para popular os dropdowns
+function popularDropdown(selector, opcoes) {
+    const optionsEl = document.querySelector(selector);
+    if (!optionsEl) return;
+    optionsEl.innerHTML = ''; // Limpa opções antigas
+    
+    opcoes.forEach(opcao => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.dataset.value = opcao;
+        
+        // Tenta encurtar nomes longos (opcional, mas bom para UI)
+        let displayName = opcao;
+        if (opcao.startsWith("Engenharia de ")) {
+            displayName = "Eng. " + opcao.substring(15);
+        }
+        
+        chip.textContent = displayName;
+        optionsEl.appendChild(chip);
+    });
 }
 
 /**
@@ -327,6 +381,9 @@ function processarEstadoDoBackend(materiaManual = null) {
     const formacoes = Array.from(formacoesEl.querySelectorAll(".chip-selected")).map(chip => chip.dataset.value);
     const dominios = Array.from(document.querySelectorAll("#dominios-selection .chip-selected")).map(chip => chip.dataset.value);
 
+    const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
+    const enfase = enfaseChip ? enfaseChip.dataset.value : null;
+
     const preSelecionadas = getMateriasNoBoard();
 
     if (materiaManual && !preSelecionadas.includes(materiaManual)) {
@@ -336,6 +393,7 @@ function processarEstadoDoBackend(materiaManual = null) {
     const data = {
         "formacoes": formacoes,
         "dominios": dominios,
+        "enfase_escolhida": enfase,
         "pre_selecionadas": preSelecionadas
     };
 
@@ -563,8 +621,9 @@ function initializeModalControls() {
 // (Substitua a sua 'initializeChipSelectors' por esta)
 function initializeChipSelectors() {
     const selectors = [
-        { sel: "#formacoes-selection", opt: "#formacoes-options" },
-        { sel: "#dominios-selection", opt: "#dominios-options" }
+        { sel: "#formacoes-selection", opt: "#formacoes-options", multi: true },
+        { sel: "#dominios-selection", opt: "#dominios-options", multi: true },
+        { sel: "#enfase-selection", opt: "#enfase-options", multi: false }
     ];
 
     function closeAllDropdowns() {
@@ -586,6 +645,9 @@ function initializeChipSelectors() {
                 const value = chipToRemove.dataset.value;
                 chipToRemove.remove();
                 optionsEl.querySelector(`.chip[data-value="${value}"]`)?.classList.remove("disabled");
+                if (s.sel === "#formacoes-selection") {
+                    atualizarDropdownEnfase();
+                }
                 processarEstadoDoBackend();
                 return;
             }
@@ -603,6 +665,14 @@ function initializeChipSelectors() {
             if (chip && !chip.classList.contains('disabled')) {
                 const value = chip.dataset.value;
                 const text = chip.textContent;
+                if (!s.multi) {
+                    const chipExistente = selectionEl.querySelector('.chip-selected');
+                    if (chipExistente) {
+                        const valorAntigo = chipExistente.dataset.value;
+                        optionsEl.querySelector(`.chip[data-value="${valorAntigo}"]`)?.classList.remove("disabled");
+                        chipExistente.remove();
+                    }
+                }
                 const selectedChip = document.createElement('span');
                 selectedChip.className = 'chip-selected';
                 selectedChip.dataset.value = value;
@@ -611,12 +681,45 @@ function initializeChipSelectors() {
                 
                 selectionEl.appendChild(selectedChip);
                 chip.classList.add('disabled');
+                if (s.sel === "#formacoes-selection") {
+                    const formacoes = Array.from(selectionEl.querySelectorAll(".chip-selected")).map(chip => chip.dataset.value);
+                    atualizarDropdownEnfase(formacoes.length > 0 ? formacoes[formacoes.length - 1] : null);
+                }
                 processarEstadoDoBackend();
             }
         });
     });
 
     document.addEventListener("click", closeAllDropdowns);
+}
+
+function atualizarDropdownEnfase(formacao) {
+    const enfaseSection = document.getElementById('enfase-section');
+    const enfaseOptions = document.getElementById('enfase-options');
+    const enfaseSelection = document.getElementById('enfase-selection');
+    
+    if (!enfaseSection || !enfaseOptions || !enfaseSelection) return;
+
+    // Limpa seleções anteriores
+    enfaseOptions.innerHTML = '';
+    enfaseSelection.innerHTML = '';
+
+    if (formacao && dadosFormacoes[formacao] && dadosFormacoes[formacao].enfase) {
+        const enfases = Object.keys(dadosFormacoes[formacao].enfase);
+        
+        if (enfases.length > 0) {
+            // Popula o dropdown
+            popularDropdown('#enfase-options', enfases);
+            // Mostra a seção
+            enfaseSection.style.display = 'block';
+        } else {
+            // Esconde se a formação não tem ênfases
+            enfaseSection.style.display = 'none';
+        }
+    } else {
+        // Esconde se nenhuma formação foi selecionada
+        enfaseSection.style.display = 'none';
+    }
 }
 
 // --- LÓGICA DE DRAG AND DROP (Limite de 30 créditos) ---
@@ -956,179 +1059,6 @@ function initializePoolSearch() {
     }
 }
 
-function getMateriaDataFromCard(cardElement) {
-    if (!cardElement) return null;
-    const codigo = cardElement.dataset.codigo;
-    return window.materiasData.find(m => m.codigo === codigo);
-}
-
-/**
- * Validação em Cascata
- * Varre o board e "empurra" matérias inválidas (créditos ou prereqs)
- * para os próximos períodos, até que o board se estabilize.
- */
-function validarBoardEmCascata() {
-    console.log("--- INICIANDO VALIDAÇÃO EM CASCATA ---");
-    let mudancasFeitas = true;
-    let materiasRemovidasDoBoard = new Set();
-    const totalPeriodos = document.querySelectorAll('.board-column').length;
-
-    while (mudancasFeitas) {
-        mudancasFeitas = false;
-        let materiasValidasAcumuladas = new Set();
-
-        // Loop por cada período (p1, p2, p3...)
-        for (let i = 1; i <= totalPeriodos; i++) {
-            const colunaId = `column-p${i}`;
-            const coluna = document.getElementById(colunaId);
-            if (!coluna) continue;
-
-            const contentEl = coluna.querySelector('.column-content');
-            const cardsNoPeriodo = Array.from(contentEl.querySelectorAll('.materia-card'));
-            let creditosNestePeriodo = 0;
-            let materiasValidasNestePeriodo = new Set();
-
-            // Loop por cada card DENTRO do período
-            for (const card of cardsNoPeriodo) {
-                const materia = getMateriaDataFromCard(card);
-                if (!materia) continue;
-
-                // 1. Checa Pré-requisitos (usando o set ACUMULADO)
-                const prereqsOK = checkPrerequisitos(materia, materiasValidasAcumuladas);
-                
-                // 2. Checa Créditos (usando o total local do período)
-                const creditosOK = (creditosNestePeriodo + materia.creditos) <= MAX_CREDITS_PER_PERIOD;
-
-                if (prereqsOK && creditosOK) {
-                    // MATÉRIA ESTÁ VÁLIDA
-                    creditosNestePeriodo += materia.creditos;
-                    materiasValidasNestePeriodo.add(materia.codigo);
-                } else {
-                    // MATÉRIA INVÁLIDA! Empurra para o próximo período.
-                    mudancasFeitas = true; // Marca que o loop precisa rodar de novo
-                    card.remove(); // Tira o card do período atual
-                    
-                    const proximoPeriodoNum = i + 1;
-                    if (proximoPeriodoNum <= totalPeriodos) {
-                        // Tenta mover para o próximo período
-                        const proximoContentEl = document.getElementById(`column-p${proximoPeriodoNum}`)
-                                                        .querySelector('.column-content');
-                        proximoContentEl.appendChild(card);
-                    } else {
-                        // Não há próximo período. Matéria é removida.
-                        materiasRemovidasDoBoard.add(materia.nome);
-                    }
-                }
-            } // Fim do loop de cards
-            
-            // Adiciona as matérias que *permaneceram* válidas ao set acumulado
-            materiasValidasNestePeriodo.forEach(codigoMateria => {
-            materiasValidasAcumuladas.add(codigoMateria);
-            });
-
-        } // Fim do loop de períodos
-    } // Fim do while
-
-    // Mostra o pop-up se alguma matéria foi ejetada do board
-    if (materiasRemovidasDoBoard.size > 0) {
-        const nomesMaterias = Array.from(materiasRemovidasDoBoard).join(', ');
-        alert(`As seguintes matérias foram removidas por quebra de pré-requisitos em cascata: ${nomesMaterias}`);
-    }
-
-    // Atualiza tudo no final
-    console.log("--- VALIDAÇÃO EM CASCATA CONCLUÍDA ---");
-    updateCreditCounters();
-    processarEstadoDoBackend(); // Atualiza o pool com as matérias removidas
-}
-
-function updateActiveNavLink() {
-    const path = window.location.pathname;
-
-    // Limpa todos os links ativos primeiro
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-    });
-
-    // Adiciona a classe ao link correto
-    if (path.endsWith('planner.html')) {
-        document.getElementById('nav-link-planner')?.classList.add('active');
-    } else if (path.endsWith('grade.html')) { // Use o nome do seu novo arquivo
-        document.getElementById('nav-link-grade')?.classList.add('active');
-    }
-}
-
-/**
- * Funções específicas do GRADE.HTML
- */
-function initializeGradePage() {
-    // Alvos de Drop da Grade (células da semana, 'online' e o pool)
-    document.querySelectorAll('.grid-dropzone, .pool-list').forEach(addDragEventsToTarget);
-    
-    // ATENÇÃO: Ainda precisamos da lógica para carregar os períodos na sidebar
-    // e depois chamar 'popularPoolDaGrade(materiasDoPeriodo)'.
-    // Por enquanto, o pool ficará vazio.
-}
-
-/**
- * [GRADE] Cria o item simples para o POOL da direita.
- * (Apenas Código e Nome, sem detalhes)
- */
-function renderGradePoolItem(materia) {
-    const poolContainer = document.getElementById("pool-list-container");
-    if (!poolContainer) return;
-
-    const item = document.createElement('div');
-    item.className = 'pool-item'; // Reutiliza o estilo base do pool
-    
-    // Damos a cor (azul/laranja) do planner
-    const tipo = materia.tipo || 'optativa'; // (Precisamos carregar o 'tipo'
-    item.classList.add(tipo === 'obrigatoria' ? 'pool-item-obrigatoria' : 'pool-item-optativa');
-
-    // ID único para cada "bloco de 1h"
-    // Ex: fis4001_1, fis4001_2
-    const count = poolContainer.querySelectorAll(`[data-codigo="${materia.codigo}"]`).length + 1;
-    item.id = `grade-pool-item-${materia.codigo}_${count}`;
-    item.draggable = true; 
-
-    // Salva o código original no dataset para o dragstart
-    item.dataset.codigoOriginal = materia.codigo;
-    
-    item.innerHTML = `
-        <div class="pool-item-main-content">
-            <span class="pool-item-code">${materia.codigo}</span>
-            <span class="pool-item-title">${materia.nome}</span>
-        </div>
-        `;
-    poolContainer.appendChild(item);
-}
-
-/**
- * [GRADE] Cria o "mini-card" que é solto na grade.
- * (Apenas Código e Nome)
- */
-function createGradeCard(materia, draggedItem) {
-    if (!materia) return;
-
-    const card = document.createElement('div');
-    card.className = 'grade-card'; // Nova classe
-    card.dataset.codigo = materia.codigo;
-    card.id = 'grade-card-' + draggedItem.id; // Usa o ID único do pool item
-    card.draggable = true;
-
-    // Pega a cor (obrigatoria/optativa) do item do pool que foi arrastado
-    if (draggedItem.classList.contains('pool-item-obrigatoria')) {
-        card.classList.add('obrigatoria');
-    } else {
-        card.classList.add('optativa');
-    }
-
-    card.innerHTML = `
-        <span class="grade-card-code">${materia.codigo}</span>
-        <span class="grade-card-title">${materia.nome}</span>
-        `;
-    return card;
-}
-
 // --- INICIALIZAÇÃO ---
 function initializeApp() {
     loadComponent('componentes/header.html', 'header-placeholder');
@@ -1151,13 +1081,6 @@ function initializeApp() {
         console.log("Modo: Grade Horária");
         initializeGradePage();
     }
-}
-
-function initializePlannerPage() {
-    initializeChipSelectors(); 
-    initializeBoardControls(); 
-    document.querySelectorAll('.column-content, .pool-list').forEach(addDragEventsToTarget);
-    processarEstadoDoBackend(); 
 }
 
 document.addEventListener("DOMContentLoaded", initializeApp);
