@@ -102,10 +102,4 @@ def api_get_formacoes():
 # --- Endpoint 4: Enviar dados de Domínios ---
 @app.route("/api/get-dominios", methods=['GET'])
 def api_get_dominios():
-    """
-    Envia a lista completa de domínios.
-    """
-    if not DADOS_CARREGADOS:
-        return jsonify({"erro": "Erro no servidor, dados não carregados"}), 500
-    
     return jsonify(dados_dom)

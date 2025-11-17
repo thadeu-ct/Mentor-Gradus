@@ -6,15 +6,18 @@
       "use": "@vercel/python",
       "config": {
         "includeFiles": [
+          "api/dados/**",
           "api/dados.py",
-          "api/__init__.py",
-          "api/dados/**"
+          "api/__init__.py"
         ]
       }
+    },
+    {
+      "src": "**/*.{html,css,js}",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/api/(.*)", "destination": "/api/index.py" }
   ]
 }
