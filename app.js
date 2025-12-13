@@ -646,7 +646,7 @@ function initializeChipSelectors() {
                 chipToRemove.remove();
                 optionsEl.querySelector(`.chip[data-value="${value}"]`)?.classList.remove("disabled");
                 if (s.sel === "#formacoes-selection") {
-                    atualizarDropdownEnfase();
+                    atualizarEnfaseInteligente(selectionEl);
                 }
                 processarEstadoDoBackend();
                 return;
@@ -682,8 +682,7 @@ function initializeChipSelectors() {
                 selectionEl.appendChild(selectedChip);
                 chip.classList.add('disabled');
                 if (s.sel === "#formacoes-selection") {
-                    const formacoes = Array.from(selectionEl.querySelectorAll(".chip-selected")).map(chip => chip.dataset.value);
-                    atualizarDropdownEnfase(formacoes.length > 0 ? formacoes[formacoes.length - 1] : null);
+                    atualizarEnfaseInteligente(selectionEl);
                 }
                 processarEstadoDoBackend();
             }
@@ -691,6 +690,25 @@ function initializeChipSelectors() {
     });
 
     document.addEventListener("click", closeAllDropdowns);
+}
+
+function atualizarEnfaseInteligente(selectionEl) {
+    const formacoes = Array.from(selectionEl.querySelectorAll(".chip-selected"))
+                           .map(chip => chip.dataset.value);
+
+    let formacaoParaEnfase = null;
+
+    for (let i = formacoes.length - 1; i >= 0; i--) {
+        const nomeFormacao = formacoes[i];
+        const dados = dadosFormacoes[nomeFormacao]; 
+        
+        if (dados && dados.enfase && Object.keys(dados.enfase).length > 0) {
+            formacaoParaEnfase = nomeFormacao;
+            break;
+        }
+    }
+
+    atualizarDropdownEnfase(formacaoParaEnfase);
 }
 
 function atualizarDropdownEnfase(formacao) {
