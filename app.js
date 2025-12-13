@@ -715,28 +715,43 @@ function atualizarDropdownEnfase(formacao) {
     const enfaseSection = document.getElementById('enfase-section');
     const enfaseOptions = document.getElementById('enfase-options');
     const enfaseSelection = document.getElementById('enfase-selection');
-    
-    if (!enfaseSection || !enfaseOptions || !enfaseSelection) return;
+    const enfaseTitle = enfaseSection.querySelector('h3'); 
 
-    // Limpa seleções anteriores
+    if (!enfaseSection || !enfaseOptions || !enfaseSelection) return;
+    const chipAtual = enfaseSelection.querySelector('.chip-selected');
+    const valorSelecionadoAnterior = chipAtual ? chipAtual.dataset.value : null;
+
     enfaseOptions.innerHTML = '';
-    enfaseSelection.innerHTML = '';
 
     if (formacao && dadosFormacoes[formacao] && dadosFormacoes[formacao].enfase) {
-        const enfases = Object.keys(dadosFormacoes[formacao].enfase);
+        const enfasesDisponiveis = Object.keys(dadosFormacoes[formacao].enfase);
         
-        if (enfases.length > 0) {
-            // Popula o dropdown
-            popularDropdown('#enfase-options', enfases);
-            // Mostra a seção
+        if (enfasesDisponiveis.length > 0) {
+            let nomeDisplay = formacao;
+            if (formacao.startsWith("Engenharia de ")) {
+                nomeDisplay = "Eng. " + formacao.substring(14);
+            }
+            enfaseTitle.textContent = `Ênfase | ${nomeDisplay}`;
+
+            popularDropdown('#enfase-options', enfasesDisponiveis);
+            
+            if (valorSelecionadoAnterior && enfasesDisponiveis.includes(valorSelecionadoAnterior)) {                
+                const chipOpcao = enfaseOptions.querySelector(`.chip[data-value="${valorSelecionadoAnterior}"]`);
+                if (chipOpcao) {
+                    chipOpcao.classList.add('disabled');
+                }
+            } else {
+                enfaseSelection.innerHTML = '';
+            }
+
             enfaseSection.style.display = 'block';
         } else {
-            // Esconde se a formação não tem ênfases
             enfaseSection.style.display = 'none';
+            enfaseSelection.innerHTML = ''; 
         }
     } else {
-        // Esconde se nenhuma formação foi selecionada
         enfaseSection.style.display = 'none';
+        enfaseSelection.innerHTML = '';
     }
 }
 
