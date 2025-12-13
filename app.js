@@ -261,7 +261,7 @@ function popularDropdown(selector, opcoes) {
         // Tenta encurtar nomes longos (opcional, mas bom para UI)
         let displayName = opcao;
         if (opcao.startsWith("Engenharia de ")) {
-            displayName = "Eng. " + opcao.substring(15);
+            displayName = "Eng. " + opcao.substring(14);
         }
         
         chip.textContent = displayName;

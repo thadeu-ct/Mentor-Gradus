@@ -14,13 +14,14 @@
         <button class="sidebar-toggle" id="toggle-sidebar-btn">
             <i class="fas fa-chevron-left"></i> <i class="fas fa-bars"></i>
         </button>
+        
         <div class="sidebar-content" id="sidebar-grade-content">
             <div class="menu-section">
                 <h3>Períodos do Planner</h3>
-                <div class="selection-area" id="periodos-selection">
-                    </div>
-                <div class="options-dropdown" id="periodos-options">
-                    </div>
+                
+                <div class="selection-area" id="periodos-selection"></div>
+                
+                <div class="options-dropdown" id="periodos-options"></div>
             </div>
         </div>
     </aside>
@@ -82,8 +83,8 @@
 
         <div id="grade-online-row">
             <div class="grid-cell online-header">Online</div>
-            <div class="grid-cell grid-dropzone" id="online-dropzone">
-                </div>
+            
+            <div class="grid-cell grid-dropzone" id="online-dropzone"></div>
         </div>
         
     </main>
@@ -93,29 +94,35 @@
             <i class="fas fa-chevron-right"></i>
             <i class="fas fa-bars"></i>
         </button>
+        
         <div class="pool-content" id="pool-grade-content">
             <h3>Matérias do Período</h3>
+            
             <div class="pool-search-container">
                 <i class="fas fa-search"></i>
+                
                 <input type="text" id="pool-search-input" placeholder="Buscar por código ou nome...">
             </div>
-            <div class="pool-list" id="pool-list-container">
-                </div>
+            
+            <div class="pool-list" id="pool-list-container"></div>
         </div>
     </aside>
 
     <div id="modal-backdrop" class="modal-backdrop escondido"></div>
+    
     <div id="modal-selecao" class="modal-container escondido">
         <div class="modal-header">
             <h3 id="modal-titulo">Escolher Matéria</h3>
+            
             <button id="modal-fechar-btn" class="modal-fechar-btn">
                 <i class="fas fa-times"></i>
             </button>
         </div>
+        
         <div class="modal-body">
             <p id="modal-descricao">Selecione uma matéria para cumprir os créditos de:</p>
-            <div id="modal-lista-opcoes">
-                </div>
+            
+            <div id="modal-lista-opcoes"></div>
         </div>
     </div>
 

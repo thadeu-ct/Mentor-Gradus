@@ -344,7 +344,7 @@
     { 
         "codigo": "ENG4051",
          "nome": "Projeto Internet das Coisas",
-         "creditos": 2,
+         "creditos": 4,
          "prereqs": [["ENG4033"]]
     },
     { 
