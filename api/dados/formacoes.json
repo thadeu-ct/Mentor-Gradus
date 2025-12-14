@@ -133,15 +133,15 @@
     ],
     "optativas": [
       ["CRE0712", 4],
-      ["ENG0450", 16],
+      ["ENG0446", 3],
+      ["ENG0450", 4],
       ["ENG0460", 4],
-      ["EXT0100", 4],
+      ["ENG0463", 3],
       ["FIL0300", 4],
       ["JUR0205", 2]
     ],
     "eletivas": [
-      ["ELL0100", 3],
-      ["ELU0900", 4]
+      ["ELU0900", 7]
     ],
     "enfase": {}
   },
@@ -276,6 +276,7 @@
       "ENG4500",
       "ENG4501",
       "ENG4502",
+      "ENG4719",
       "FIS4001",
       "FIS4002",
       "FIS4003",
@@ -292,27 +293,38 @@
     ],
     "optativas": [
       ["CRE0712", 4],
-      ["ENG0422", 4],
-      ["ENG0424", 4],
-      ["ENG0426", 20],
-      ["EXT0100", 5],
+      ["ENG0445", 3],
+      ["ENG0446", 3],
+      ["ENG0466", 6],
       ["FIL0300", 4],
       ["JUR0205", 2]
     ],
     "eletivas": [
-      ["ELL0100", 4],
-      ["ELU0900", 4]
+      ["ELU0900", 18]
     ],
     "enfase": {
       "Eletrônica e Sistemas Computacionais Avançados (ESC)": {
-        "obrigatórias": [],
-        "optativas": [], 
-        "eletivas": []
+        "obrigatórias": ["ENG4448", "ENG4451"],
+        "optativas": [
+          ["ENG0461", 3],
+          ["ENG0462", 3],
+          ["ENG0463", 3]
+        ], 
+        "eletivas": [
+          ["ELU0900", 18]
+        ]
       },
       "Sistemas Elétricos e Mercados de Energia (SEE)": {
-        "obrigatórias": [],
-        "optativas": [],
-        "eletivas": []
+        "obrigatórias": ["ENG4425"],
+        "optativas": [
+          ["ENG0448", 3],
+          ["ENG0456", 3],
+          ["ENG0458", 3],
+          ["ENG0459", 3]
+        ],
+        "eletivas": [
+          ["ELU0900", 19]
+        ]
       }
     }
   }

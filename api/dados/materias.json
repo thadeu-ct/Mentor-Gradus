@@ -210,8 +210,38 @@
          "prereqs": [[]]
     },
     { 
+        "codigo": "ELE2501",
+         "nome": "Sistema de Distribuição Elétrica",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2504",
+         "nome": "Análise de Redes Elétricas",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2506",
+         "nome": "Economia de Energia Elétrica",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2552",
+         "nome": "Tópicos Especiais de Potência III",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
         "codigo": "ELE2616",
          "nome": "Processos Analógico de Sinais",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "ELE2638",
+         "nome": "Informação Quantica",
          "creditos": 3,
          "prereqs": [[]]
     },
@@ -262,6 +292,30 @@
          "nome": "Tópicos Especiais",
          "creditos": 4,
          "prereqs": [[]]
+    },
+    { 
+        "codigo": "ENG1465",
+         "nome": "Processos Estocásticos Markovianos",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG1468",
+         "nome": "Programação Linear Inteira",
+         "creditos": 4,
+         "prereqs": [["ENG4467"]]
+    },
+    { 
+        "codigo": "ENG1469",
+         "nome": "Análise de Séries Temporais",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
+    },
+    { 
+        "codigo": "ENG1470",
+         "nome": "Modelos de Regressão",
+         "creditos": 4,
+         "prereqs": [["ENG4501"]]
     },
     { 
         "codigo": "ENG1492",
@@ -500,6 +554,24 @@
     { 
         "codigo": "ENG4432",
          "nome": "Subestações",
+         "creditos": 4,
+         "prereqs": [["ENG4434"]]
+    },
+    { 
+        "codigo": "ENG4433",
+         "nome": "Economia de Energia Elétrica",
+         "creditos": 4,
+         "prereqs": [["ENG4467"]]
+    },
+    { 
+        "codigo": "ENG4434",
+         "nome": "Análise de Redes Elétricas",
+         "creditos": 4,
+         "prereqs": [["ENG4415"]]
+    },
+    { 
+        "codigo": "ENG4435",
+         "nome": "Sistema de Distribuição Elétrica",
          "creditos": 4,
          "prereqs": [["ENG4437"]]
     },
@@ -1226,6 +1298,12 @@
     { 
         "codigo": "MEC2403",
          "nome": "Otimização: Algoritmo e Aplicação na Engenharia Mecânica",
+         "creditos": 3,
+         "prereqs": [[]]
+    },
+    { 
+        "codigo": "MQI2103",
+         "nome": "Sensores e Instrumentação",
          "creditos": 3,
          "prereqs": [[]]
     }
