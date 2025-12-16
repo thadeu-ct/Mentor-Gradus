@@ -67,41 +67,51 @@ async function inicializarPaginaGrafo() {
 }
 
 function atualizarGrafo() {
-    // 1. Descobrir qual formação/ênfase está selecionada na sidebar
+    // 1. Captura os Chips Selecionados (Curso, Ênfase e Domínios)
     const formacaoChip = document.querySelector("#formacoes-selection .chip-selected");
     const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
+    // Captura múltiplos domínios (retorna um NodeList, convertemos para Array)
+    const dominiosChips = Array.from(document.querySelectorAll("#dominios-selection .chip-selected"));
 
+    // Se não tem curso base, limpa e sai
     if (!formacaoChip) {
-        // Se não tem curso selecionado, limpa o grafo
         if (window.cyInstance) window.cyInstance.elements().remove();
         return;
     }
 
     const nomeCurso = formacaoChip.dataset.value;
     const nomeEnfase = enfaseChip ? enfaseChip.dataset.value : null;
+    const nomesDominios = dominiosChips.map(chip => chip.dataset.value);
 
-    console.log(`Grafo: Desenhando para ${nomeCurso} (Enfase: ${nomeEnfase})`);
+    console.log(`Grafo: Curso [${nomeCurso}] | Ênfase [${nomeEnfase}] | Domínios [${nomesDominios.join(', ')}]`);
 
-    // 2. Coletar lista de códigos obrigatórios desse curso
+    // 2. Coletar lista de códigos para exibir (Set evita duplicatas)
     let codigosParaExibir = new Set();
 
+    // A) Adiciona Obrigatórias do Curso Base
     const dadosCurso = window.dadosFormacoes[nomeCurso];
-    if (dadosCurso) {
-        // Obrigatórias do Tronco
-        if (dadosCurso.obrigatórias) {
-            dadosCurso.obrigatórias.forEach(c => codigosParaExibir.add(c));
-        }
-        // Obrigatórias da Ênfase
-        if (nomeEnfase && dadosCurso.enfase && dadosCurso.enfase[nomeEnfase]) {
-            const dadosEnfase = dadosCurso.enfase[nomeEnfase];
-            if (dadosEnfase.obrigatórias) {
-                dadosEnfase.obrigatórias.forEach(c => codigosParaExibir.add(c));
-            }
+    if (dadosCurso && dadosCurso.obrigatórias) {
+        dadosCurso.obrigatórias.forEach(c => codigosParaExibir.add(c));
+    }
+
+    // B) Adiciona Obrigatórias da Ênfase
+    if (nomeEnfase && dadosCurso.enfase && dadosCurso.enfase[nomeEnfase]) {
+        const dadosEnfase = dadosCurso.enfase[nomeEnfase];
+        if (dadosEnfase.obrigatórias) {
+            dadosEnfase.obrigatórias.forEach(c => codigosParaExibir.add(c));
         }
     }
 
+    // C) Adiciona Obrigatórias dos Domínios [NOVO!]
+    nomesDominios.forEach(dominio => {
+        const dadosDominio = window.dadosDominios[dominio];
+        if (dadosDominio && dadosDominio.obrigatórias) {
+            dadosDominio.obrigatórias.forEach(c => codigosParaExibir.add(c));
+        }
+    });
+
     // 3. Filtrar o array global de matérias
-    // Só mostra matérias que estão na lista de obrigatórias
+    // (Pega apenas as matérias cujo código está no nosso Set de exibição)
     const materiasFiltradas = window.materiasData.filter(m => codigosParaExibir.has(m.codigo));
 
     // 4. Desenhar
