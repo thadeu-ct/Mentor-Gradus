@@ -1,78 +1,141 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Registra a extensão 'dagre' no cytoscape (para layout hierárquico)
+    // 1. Registra a extensão dagre (layout hierárquico)
     try {
-        cytoscape.use(cytoscapeDagre);
+        if (typeof cytoscapeDagre !== 'undefined') {
+            cytoscape.use(cytoscapeDagre);
+        }
     } catch (e) {
-        console.warn("Dagre já registrado ou erro ao registrar:", e);
+        console.warn("Aviso Cytoscape:", e);
     }
 
-    // Espera os dados do app.js serem carregados (pode precisar de um delay ou evento)
-    // Como seu app.js não tem um evento de "DadosProntos", vamos fazer um fetch manual aqui
-    // para garantir que funcione isolado por enquanto.
-    carregarDadosParaGrafo();
+    // 2. Inicializa a lógica da página
+    inicializarPaginaGrafo();
 });
 
-async function carregarDadosParaGrafo() {
+async function inicializarPaginaGrafo() {
+    console.log("Grafo: Iniciando configuração...");
+
+    // Hook: Sobrescreve a função do app.js. 
+    // Quando você clicar num chip na sidebar, ele chama ISSO aqui em vez de ir no backend do planner.
+    window.processarEstadoDoBackend = function() {
+        console.log("Grafo: Seleção alterada, redesenhando...");
+        atualizarGrafo();
+    };
+
+    // 3. FORÇA O CARREGAMENTO DOS DADOS (Já que o app.js não faz isso sozinho nessa página)
     try {
-        // Carrega o JSON de matérias
-        const response = await fetch('/api/dados/materias.json'); // Ou o caminho correto do seu JSON
-        // NOTA: Como você está rodando local/vercel, talvez precise ajustar o caminho
-        // Se preferir, podemos ler de window.materiasData se você navegar via menu
-        
-        // MOCK TEMPORÁRIO: Se não conseguir fetch, tente usar o window.materiasData se já existir
-        let materias = [];
-        
-        // Tenta buscar do arquivo físico
-        try {
-            const resp = await fetch('api/dados/materias.json'); 
-            if(resp.ok) materias = await resp.json();
-        } catch(e) {
-            console.log("Tentando carregar de window.materiasData...");
-            if(window.materiasData && window.materiasData.length > 0) {
-                materias = window.materiasData;
-            } else {
-                // Se der tudo errado, só pra testar, coloque um array manual aqui ou avise
-                console.error("Não foi possível carregar matérias para o grafo.");
-                return;
+        // Verifica se as funções do app.js existem (ele deve ter sido carregado antes no HTML)
+        if (typeof window.carregarDadosIniciais === 'function') {
+            await window.carregarDadosIniciais(); // Baixa formacoes.json e dominios.json
+            
+            // Inicializa a lógica de clicar nos chips (Sidebar)
+            if (typeof window.initializeChipSelectors === 'function') {
+                window.initializeChipSelectors();
             }
+            
+            // Inicializa o botão de esconder sidebar
+            if (typeof window.initializeSidebar === 'function') {
+                window.initializeSidebar();
+            }
+        } else {
+            console.error("Erro: app.js não foi carregado corretamente.");
         }
 
-        inicializarCytoscape(materias);
+        // 4. Garante que temos a lista de matérias
+        if (!window.materiasData || window.materiasData.length === 0) {
+            console.log("Grafo: Baixando matérias manualmente...");
+            const resp = await fetch('api/dados/materias.json');
+            window.materiasData = await resp.json();
+        }
+
+        // 5. Conecta o botão da sidebar para redimensionar o grafo
+        const toggleBtn = document.getElementById("toggle-sidebar-btn");
+        const cyDiv = document.getElementById("cy");
+        if (toggleBtn && cyDiv) {
+            toggleBtn.addEventListener("click", () => {
+                cyDiv.classList.toggle("recolhido");
+                // Espera a animação do CSS terminar para recalcular o tamanho do grafo
+                setTimeout(() => {
+                    if (window.cyInstance) window.cyInstance.resize();
+                }, 350);
+            });
+        }
 
     } catch (error) {
-        console.error("Erro fatal no grafo:", error);
+        console.error("Erro fatal ao inicializar grafo:", error);
     }
 }
 
-function inicializarCytoscape(materias) {
-    const elements = [];
+function atualizarGrafo() {
+    // 1. Descobrir qual formação/ênfase está selecionada na sidebar
+    const formacaoChip = document.querySelector("#formacoes-selection .chip-selected");
+    const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
 
-    // 1. Criar NÓS (Nodes)
+    if (!formacaoChip) {
+        // Se não tem curso selecionado, limpa o grafo
+        if (window.cyInstance) window.cyInstance.elements().remove();
+        return;
+    }
+
+    const nomeCurso = formacaoChip.dataset.value;
+    const nomeEnfase = enfaseChip ? enfaseChip.dataset.value : null;
+
+    console.log(`Grafo: Desenhando para ${nomeCurso} (Enfase: ${nomeEnfase})`);
+
+    // 2. Coletar lista de códigos obrigatórios desse curso
+    let codigosParaExibir = new Set();
+
+    const dadosCurso = window.dadosFormacoes[nomeCurso];
+    if (dadosCurso) {
+        // Obrigatórias do Tronco
+        if (dadosCurso.obrigatórias) {
+            dadosCurso.obrigatórias.forEach(c => codigosParaExibir.add(c));
+        }
+        // Obrigatórias da Ênfase
+        if (nomeEnfase && dadosCurso.enfase && dadosCurso.enfase[nomeEnfase]) {
+            const dadosEnfase = dadosCurso.enfase[nomeEnfase];
+            if (dadosEnfase.obrigatórias) {
+                dadosEnfase.obrigatórias.forEach(c => codigosParaExibir.add(c));
+            }
+        }
+    }
+
+    // 3. Filtrar o array global de matérias
+    // Só mostra matérias que estão na lista de obrigatórias
+    const materiasFiltradas = window.materiasData.filter(m => codigosParaExibir.has(m.codigo));
+
+    // 4. Desenhar
+    desenharCytoscape(materiasFiltradas);
+}
+
+function desenharCytoscape(materias) {
+    const elements = [];
+    // Cria um Set para busca rápida de quais matérias existem no grafo atual
+    const materiasSet = new Set(materias.map(m => m.codigo));
+
+    // --- CRIAÇÃO DOS NÓS ---
     materias.forEach(mat => {
         elements.push({
             group: 'nodes',
-            data: { 
-                id: mat.codigo, 
-                label: mat.codigo, // Mostra só o código pra não poluir
-                nomeCompleto: mat.nome,
-                creditos: mat.creditos
+            data: {
+                id: mat.codigo,
+                label: mat.codigo,
+                nomeCompleto: mat.nome // Salva o nome para o alert/tooltip
             }
         });
     });
 
-    // 2. Criar ARESTAS (Edges) - As setas
+    // --- CRIAÇÃO DAS ARESTAS (Conexões) ---
     materias.forEach(mat => {
         if (mat.prereqs) {
             mat.prereqs.forEach(grupo => {
                 grupo.forEach(prereqCod => {
-                    // Se o pré-requisito existe na lista de matérias
-                    if (materias.find(m => m.codigo === prereqCod)) {
+                    // Só cria a seta se O PRÉ-REQUISITO TAMBÉM ESTIVER no grafo visível.
+                    // Isso evita setas apontando para o nada.
+                    if (materiasSet.has(prereqCod)) {
                         elements.push({
                             group: 'edges',
-                            data: { 
-                                source: prereqCod, // A seta sai do pré-requisito
-                                target: mat.codigo // E aponta para a matéria atual
-                            }
+                            data: { source: prereqCod, target: mat.codigo }
                         });
                     }
                 });
@@ -80,113 +143,127 @@ function inicializarCytoscape(materias) {
         }
     });
 
-    // 3. Configurar Visualização
-    const cy = cytoscape({
-        container: document.getElementById('cy'),
-        elements: elements,
+    // --- INICIALIZAÇÃO DO CYTOSCAPE ---
+    const container = document.getElementById('cy');
 
-        style: [ // O CSS do Grafo
+    if (window.cyInstance) {
+        // Se já existe, destrói o anterior para não sobrepor ou bugar layout
+        window.cyInstance.destroy();
+    }
+
+    window.cyInstance = cytoscape({
+        container: container,
+        elements: elements,
+        
+        // --- ESTILOS VISUAIS ---
+        style: [
             {
                 selector: 'node',
                 style: {
                     'background-color': '#3498db',
-                    'label': 'data(id)',
+                    'label': 'data(label)',
                     'color': '#333',
                     'font-size': '10px',
+                    'font-weight': 'bold',
                     'text-valign': 'center',
                     'text-halign': 'center',
-                    'width': '50px',
-                    'height': '50px',
+                    'width': '55px',
+                    'height': '55px',
                     'border-width': 2,
-                    'border-color': '#fff'
+                    'border-color': '#fff',
+                    'text-wrap': 'wrap',
+                    'text-max-width': '50px'
                 }
             },
             {
                 selector: 'edge',
                 style: {
                     'width': 2,
-                    'line-color': '#ccc',
-                    'target-arrow-color': '#ccc',
+                    'line-color': '#bdc3c7',
+                    'target-arrow-color': '#bdc3c7',
                     'target-arrow-shape': 'triangle',
-                    'curve-style': 'bezier'
+                    'curve-style': 'bezier',
+                    'arrow-scale': 1.2
                 }
             },
-            // Estilos de Interação (Hover)
+            // --- ESTILOS DE INTERAÇÃO ---
             {
-                selector: '.highlight', // Matéria focada
+                selector: '.highlight', // A matéria que o mouse está em cima
                 style: {
-                    'background-color': '#f1c40f',
-                    'line-color': '#f1c40f',
-                    'target-arrow-color': '#f1c40f',
-                    'transition-property': 'background-color, line-color, target-arrow-color',
-                    'transition-duration': '0.5s'
+                    'background-color': '#f1c40f', // Amarelo
+                    'border-color': '#333',
+                    'border-width': 3
                 }
             },
             {
-                selector: '.prerequisito', // É pré-requisito da focada (Vermelho)
+                selector: '.prerequisito', // É pré-requisito (Vermelho)
                 style: {
                     'background-color': '#e74c3c',
                     'line-color': '#e74c3c',
                     'target-arrow-color': '#e74c3c',
-                    'width': 4
+                    'width': 4,
+                    'z-index': 999
                 }
             },
             {
-                selector: '.libera', // É liberada pela focada (Verde)
+                selector: '.libera', // É liberada por ela (Verde)
                 style: {
                     'background-color': '#27ae60',
                     'line-color': '#27ae60',
                     'target-arrow-color': '#27ae60',
-                    'width': 4
+                    'width': 4,
+                    'z-index': 999
                 }
             },
             {
-                selector: '.faded', // Todo o resto (Blur/Apagado)
+                selector: '.faded', // Todo o resto (Opacidade baixa)
                 style: {
-                    'opacity': 0.1,
-                    'label': ''
+                    'opacity': 0.1
                 }
             }
         ],
 
+        // --- LAYOUT AUTOMÁTICO (Dagre) ---
         layout: {
-            name: 'dagre', // Layout hierárquico
-            rankDir: 'LR', // Left to Right (pode mudar para 'TB' - Top to Bottom)
-            nodeSep: 50,
-            rankSep: 100
+            name: 'dagre',
+            rankDir: 'LR', // Left to Right (Esquerda para Direita)
+            nodeSep: 30,   // Espaço vertical entre nós
+            rankSep: 100,  // Espaço horizontal entre colunas
+            padding: 20
         }
     });
 
-    // 4. Lógica de Mouse Over (A parte inovadora)
+    // Ativa os eventos de mouse
+    configurarEventosMouse(window.cyInstance);
+}
+
+function configurarEventosMouse(cy) {
     cy.on('mouseover', 'node', function(e) {
         const node = e.target;
         
-        // Remove classes antigas
+        // 1. Limpa classes antigas e aplica Faded em tudo
         cy.elements().removeClass('highlight prerequisito libera faded');
-
-        // Adiciona 'faded' em TUDO primeiro
         cy.elements().addClass('faded');
 
-        // Remove 'faded' do nó atual e adiciona highlight
+        // 2. Destaca o nó atual
         node.removeClass('faded').addClass('highlight');
 
-        // Pega os antecessores (Pré-requisitos)
-        const antecessores = node.predecessors();
-        antecessores.removeClass('faded').addClass('prerequisito');
+        // 3. Destaca os Antecessores (Recursivo) - Quem libera essa matéria
+        // .predecessors() pega toda a cadeia para trás
+        node.predecessors().removeClass('faded').addClass('prerequisito');
 
-        // Pega os sucessores (Matérias que ela libera)
-        const sucessores = node.successors();
-        sucessores.removeClass('faded').addClass('libera');
+        // 4. Destaca os Sucessores (Recursivo) - Quem essa matéria libera
+        // .successors() pega toda a cadeia para frente
+        node.successors().removeClass('faded').addClass('libera');
     });
 
-    // Reset ao tirar o mouse
     cy.on('mouseout', 'node', function(e) {
+        // Reseta tudo ao normal
         cy.elements().removeClass('highlight prerequisito libera faded');
     });
-    
-    // Clique para ver detalhes (opcional)
-    cy.on('tap', 'node', function(e){
-        const nome = e.target.data('nomeCompleto');
-        alert("Matéria: " + nome);
+
+    cy.on('tap', 'node', function(e) {
+        // Exemplo simples de clique
+        alert(`${e.target.data('id')} - ${e.target.data('nomeCompleto')}`);
     });
 }
