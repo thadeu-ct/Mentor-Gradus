@@ -227,22 +227,28 @@ async function carregarDadosIniciais() {
         // 1. Busca Formações
         const formResponse = await fetch('/api/get-formacoes');
         if (!formResponse.ok) throw new Error('Falha ao buscar formações');
-        dadosFormacoes = await formResponse.json();
+        
+        // Salva na variável local E no window (global)
+        const dadosF = await formResponse.json();
+        dadosFormacoes = dadosF;       // Para uso interno do app.js
+        window.dadosFormacoes = dadosF; // Para o grafo.js poder ler!
 
         // 2. Busca Domínios
         const domResponse = await fetch('/api/get-dominios');
         if (!domResponse.ok) throw new Error('Falha ao buscar domínios');
-        dadosDominios = await domResponse.json();
+        
+        const dadosD = await domResponse.json();
+        dadosDominios = dadosD;
+        window.dadosDominios = dadosD; // Para o grafo.js poder ler!
 
         // 3. Popula os dropdowns
         popularDropdown('#formacoes-options', Object.keys(dadosFormacoes));
         popularDropdown('#dominios-options', Object.keys(dadosDominios));
         
-        console.log("Dados iniciais carregados:", { dadosFormacoes, dadosDominios });
+        console.log("Dados iniciais carregados e Globais:", { dadosFormacoes, dadosDominios });
 
     } catch (error) {
         console.error("Erro em carregarDadosIniciais:", error);
-        // Propaga o erro para o .catch() do initializePlannerPage
         return Promise.reject(error);
     }
 }
