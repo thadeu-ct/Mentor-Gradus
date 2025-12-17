@@ -128,26 +128,47 @@ function atualizarGrafo() {
 function desenharCytoscape(materias) {
     const container = document.getElementById('cy');
     const elements = [];
+    // Set para checagem rápida de existência
     const materiasSet = new Set(materias.map(m => m.codigo));
 
-    // Nós
+    // --- 1. CRIAÇÃO DOS NÓS (Nodes) ---
     materias.forEach(mat => {
+        // Proteção contra dados ruins (sem código)
+        if (!mat.codigo) return; 
+
         elements.push({
             group: 'nodes',
-            data: { id: mat.codigo, label: mat.codigo, nomeCompleto: mat.nome }
+            data: { 
+                id: mat.codigo, // O ID do nó é o código da matéria (ex: INF1010)
+                label: mat.codigo, 
+                nomeCompleto: mat.nome || mat.codigo 
+            }
         });
     });
 
-    // Arestas
+    // --- 2. CRIAÇÃO DAS ARESTAS (Edges) ---
     materias.forEach(mat => {
         if (mat.prereqs) {
             mat.prereqs.forEach(grupo => {
+                // Se o grupo for vazio ou null, pula
+                if (!grupo) return;
+
                 grupo.forEach(prereqCod => {
-                    // Só cria seta se ambos os nós existirem no grafo
-                    if (materiasSet.has(prereqCod)) {
+                    // Só cria a seta se:
+                    // A) O pré-requisito existe no grafo atual
+                    // B) A matéria de destino tem código válido
+                    if (materiasSet.has(prereqCod) && mat.codigo) {
+                        
+                        // CORREÇÃO DO ERRO AQUI: Gerar um ID único para a seta
+                        const edgeId = `edge_${prereqCod}_to_${mat.codigo}`;
+                        
                         elements.push({
                             group: 'edges',
-                            data: { source: prereqCod, target: mat.codigo }
+                            data: { 
+                                id: edgeId,       // <--- OBRIGATÓRIO PARA cy.json()
+                                source: prereqCod, 
+                                target: mat.codigo 
+                            }
                         });
                     }
                 });
@@ -155,19 +176,48 @@ function desenharCytoscape(materias) {
         }
     });
 
-    // Inicializa ou Atualiza
+    // --- 3. RENDERIZAÇÃO ---
+    // Se o grafo já existe, usamos o método .json() para atualizar suavemente
     if (window.cyInstance) {
-        window.cyInstance.json({ elements: elements });
-        window.cyInstance.layout({ name: 'dagre', rankDir: 'LR', nodeSep: 30, rankSep: 100 }).run();
+        try {
+            window.cyInstance.json({ elements: elements });
+            
+            // Re-executa o layout para organizar as novas bolinhas
+            window.cyInstance.layout({ 
+                name: 'dagre', 
+                rankDir: 'LR', 
+                nodeSep: 30, 
+                rankSep: 100,
+                animate: true, // Animação suave
+                animationDuration: 500
+            }).run();
+            
+        } catch (e) {
+            console.error("Erro ao atualizar grafo:", e);
+            // Se der erro na atualização suave, recria do zero (fallback)
+            window.cyInstance.destroy();
+            criarNovoGrafo(container, elements);
+        }
     } else {
-        window.cyInstance = cytoscape({
-            container: container,
-            elements: elements,
-            style: getCytoscapeStyle(),
-            layout: { name: 'dagre', rankDir: 'LR', nodeSep: 30, rankSep: 100 }
-        });
-        configurarEventosMouse(window.cyInstance);
+        // Se não existe, cria do zero
+        criarNovoGrafo(container, elements);
     }
+}
+
+// Função auxiliar para criar a instância (para não repetir código)
+function criarNovoGrafo(container, elements) {
+    window.cyInstance = cytoscape({
+        container: container,
+        elements: elements,
+        style: getCytoscapeStyle(),
+        layout: { 
+            name: 'dagre', 
+            rankDir: 'LR', 
+            nodeSep: 30, 
+            rankSep: 100 
+        }
+    });
+    configurarEventosMouse(window.cyInstance);
 }
 
 function getCytoscapeStyle() {
