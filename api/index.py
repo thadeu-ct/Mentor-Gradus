@@ -103,3 +103,19 @@ def api_get_formacoes():
 @app.route("/api/get-dominios", methods=['GET'])
 def api_get_dominios():
     return jsonify(dados_dom)
+
+# --- Endpoint 5: Enviar TODAS as matérias (Para o Grafo) ---
+@app.route("/api/get-todas-materias", methods=['GET'])
+def api_get_todas_materias():
+    """
+    Retorna a lista completa de matérias carregadas no sistema.
+    Usado para renderizar o grafo de dependências.
+    """
+    if not DADOS_CARREGADOS:
+        return jsonify({"erro": "Dados não carregados"}), 500
+    
+    # dados_mat_map é um dicionário { 'COD': {Objeto} }
+    # O frontend espera uma lista [ {Objeto}, {Objeto} ]
+    lista_materias = list(dados_mat_map.values())
+    
+    return jsonify(lista_materias)
