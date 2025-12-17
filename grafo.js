@@ -31,43 +31,64 @@ async function inicializarPaginaGrafo() {
 }
 
 function atualizarGrafo() {
-    const formacaoChip = document.querySelector("#formacoes-selection .chip-selected");
+    // 1. Captura MÚLTIPLOS Chips de Formação
+    const formacoesChips = Array.from(document.querySelectorAll("#formacoes-selection .chip-selected"));
     const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
     const dominiosChips = Array.from(document.querySelectorAll("#dominios-selection .chip-selected"));
 
-    if (!formacaoChip) {
+    // Se não tem NENHUM curso selecionado, limpa o grafo e sai
+    if (formacoesChips.length === 0) {
         if (window.cyInstance) window.cyInstance.elements().remove();
         return;
     }
 
-    const nomeCurso = formacaoChip.dataset.value;
     const nomeEnfase = enfaseChip ? enfaseChip.dataset.value : null;
     const nomesDominios = dominiosChips.map(chip => chip.dataset.value);
 
-    // 1. Coleta Códigos Obrigatórios
+    // 2. Coletar lista de códigos para exibir (Set evita duplicatas)
     let codigosParaExibir = new Set();
 
+    // Função auxiliar para adicionar arrays ao Set sem repetir
     const adicionarSeExistir = (lista) => {
-        if(lista) lista.forEach(c => codigosParaExibir.add(c));
+        if (lista) lista.forEach(c => codigosParaExibir.add(c));
     };
 
-    const dadosCurso = window.dadosFormacoes[nomeCurso];
-    if (dadosCurso) {
-        adicionarSeExistir(dadosCurso.obrigatórias);
-        if (nomeEnfase && dadosCurso.enfase && dadosCurso.enfase[nomeEnfase]) {
-            adicionarSeExistir(dadosCurso.enfase[nomeEnfase].obrigatórias);
-        }
-    }
+    // A) LOOP POR TODAS AS FORMAÇÕES SELECIONADAS (Correção Principal)
+    formacoesChips.forEach(chip => {
+        const nomeCurso = chip.dataset.value;
+        const dadosCurso = window.dadosFormacoes[nomeCurso];
 
-    nomesDominios.forEach(dominio => {
-        const dadosDominio = window.dadosDominios[dominio];
-        if (dadosDominio) adicionarSeExistir(dadosDominio.obrigatórias);
+        if (dadosCurso) {
+            console.log(`Adicionando curso: ${nomeCurso}`);
+            
+            // 1. Adiciona Obrigatórias do Tronco
+            adicionarSeExistir(dadosCurso.obrigatórias);
+
+            // 2. Verifica se a Ênfase selecionada pertence a ESTE curso
+            // (Ex: Se escolheu "Eng. Elétrica" + "Eng. Computação", e a ênfase é "Sistemas de Potência",
+            // ela só vai adicionar as matérias quando o loop estiver passando pela Elétrica)
+            if (nomeEnfase && dadosCurso.enfase && dadosCurso.enfase[nomeEnfase]) {
+                console.log(`  -> Aplicando ênfase ${nomeEnfase} em ${nomeCurso}`);
+                adicionarSeExistir(dadosCurso.enfase[nomeEnfase].obrigatórias);
+            }
+        }
     });
 
-    // 2. Filtra Matérias
+    // B) Adiciona Obrigatórias dos Domínios
+    nomesDominios.forEach(dominio => {
+        const dadosDominio = window.dadosDominios[dominio];
+        if (dadosDominio) {
+            console.log(`Adicionando domínio: ${dominio}`);
+            adicionarSeExistir(dadosDominio.obrigatórias);
+        }
+    });
+
+    // 3. Filtrar o array global de matérias
     const materiasFiltradas = window.materiasData.filter(m => codigosParaExibir.has(m.codigo));
 
-    // 3. Desenha
+    console.log(`Grafo: Desenhando ${materiasFiltradas.length} nós combinados.`);
+
+    // 4. Desenhar
     desenharCytoscape(materiasFiltradas);
 }
 
