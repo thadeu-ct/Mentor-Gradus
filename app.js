@@ -1123,114 +1123,87 @@ function initializeApp() {
 }
 
 function atualizarContadorCreditos() {
-    const counterElement = document.getElementById('creditos-counter');
+    const counterElement = document.getElementById('global-credit-counter');
     if (!counterElement) return;
 
-    // --- 1. Calcular CRETOT (Total Exigido pelo Curso Selecionado) ---
     let totalExigido = 0;
     
-    // Pega a formação selecionada (assumindo que só tem 1 principal ativa por vez no planner)
-    // Se você usar a lógica de múltiplas seleções do grafo, precisaremos adaptar, 
-    // mas pro planner geralmente é uma base + ênfase.
     const formacaoChip = document.querySelector("#formacoes-selection .chip-selected");
     const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
     const dominiosChips = document.querySelectorAll("#dominios-selection .chip-selected");
+
+    const somarCreditosPorCodigo = (listaCodigos) => {
+        let soma = 0;
+        if (!listaCodigos) return 0;
+        listaCodigos.forEach(cod => {
+            const mat = window.materiasData.find(m => m.codigo === cod);
+            if (mat) soma += (mat.creditos || 0);
+        });
+        return soma;
+    };
+
+    const somarCreditosGrupos = (listaGrupos) => {
+        let soma = 0;
+        if (!listaGrupos) return 0;
+        listaGrupos.forEach(item => {
+            if (Array.isArray(item) && item.length > 1) soma += (item[1] || 0);
+        });
+        return soma;
+    };
 
     if (formacaoChip && window.dadosFormacoes) {
         const nomeCurso = formacaoChip.dataset.value;
         const dadosCurso = window.dadosFormacoes[nomeCurso];
 
         if (dadosCurso) {
-            // A) Soma créditos das Obrigatórias
-            if (dadosCurso.obrigatórias) {
-                dadosCurso.obrigatórias.forEach(cod => {
-                    const mat = window.materiasData.find(m => m.codigo === cod);
-                    if (mat) totalExigido += (mat.creditos || 0);
-                });
-            }
+            totalExigido += somarCreditosPorCodigo(dadosCurso.obrigatórias);
+            totalExigido += somarCreditosGrupos(dadosCurso.optativas);
+            totalExigido += somarCreditosGrupos(dadosCurso.eletivas);
 
-            // B) Soma créditos exigidos de Optativas (O valor numérico na lista: ["GRUPO", 4])
-            if (dadosCurso.optativas) {
-                dadosCurso.optativas.forEach(item => {
-                    // item[1] é a quantidade de créditos exigida
-                    if (Array.isArray(item) && item.length > 1) totalExigido += item[1];
-                });
-            }
-
-            // C) Soma créditos exigidos de Eletivas
-            if (dadosCurso.eletivas) {
-                dadosCurso.eletivas.forEach(item => {
-                    if (Array.isArray(item) && item.length > 1) totalExigido += item[1];
-                });
-            }
-
-            // D) Soma créditos da Ênfase (se houver)
             if (enfaseChip) {
                 const nomeEnfase = enfaseChip.dataset.value;
                 const dadosEnfase = dadosCurso.enfase ? dadosCurso.enfase[nomeEnfase] : null;
-                
                 if (dadosEnfase) {
-                    // Obrigatórias da Ênfase
-                    if (dadosEnfase.obrigatórias) {
-                        dadosEnfase.obrigatórias.forEach(cod => {
-                            const mat = window.materiasData.find(m => m.codigo === cod);
-                            if (mat) totalExigido += (mat.creditos || 0);
-                        });
-                    }
-                    // Optativas/Eletivas da Ênfase
-                    if (dadosEnfase.optativas) {
-                        dadosEnfase.optativas.forEach(item => {
-                            if (Array.isArray(item) && item.length > 1) totalExigido += item[1];
-                        });
-                    }
-                    if (dadosEnfase.eletivas) {
-                        dadosEnfase.eletivas.forEach(item => {
-                            if (Array.isArray(item) && item.length > 1) totalExigido += item[1];
-                        });
-                    }
+                    totalExigido += somarCreditosPorCodigo(dadosEnfase.obrigatórias);
+                    totalExigido += somarCreditosGrupos(dadosEnfase.optativas);
+                    totalExigido += somarCreditosGrupos(dadosEnfase.eletivas);
                 }
             }
         }
     }
 
-    // E) Soma créditos dos Domínios
     dominiosChips.forEach(chip => {
         const nomeDominio = chip.dataset.value;
         const dadosDom = window.dadosDominios ? window.dadosDominios[nomeDominio] : null;
-        if (dadosDom && dadosDom.obrigatórias) {
-             dadosDom.obrigatórias.forEach(cod => {
-                const mat = window.materiasData.find(m => m.codigo === cod);
-                // Nota: Domínios podem ter matérias que já são obrigatórias do curso.
-                // Para ser PERFEITO, precisariamos de um Set() para não somar duplicado.
-                // Mas como estimativa rápida, vamos somar simples por enquanto.
-                if (mat) totalExigido += (mat.creditos || 0);
-            });
+        if (dadosDom) {
+            totalExigido += somarCreditosPorCodigo(dadosDom.obrigatórias);
+            totalExigido += somarCreditosGrupos(dadosDom.optativas);
         }
     });
 
-
-    // --- 2. Calcular CREPRE (Total Planejado no Board) ---
     let totalPlanejado = 0;
     
-    // Itera sobre o estado do board (as colunas/períodos)
-    // Supondo que 'boardState' é a sua variável global que guarda onde as matérias estão
-    if (typeof boardState !== 'undefined') {
-        Object.values(boardState).forEach(listaMaterias => {
-            listaMaterias.forEach(cod => {
-                const mat = window.materiasData.find(m => m.codigo === cod);
-                if (mat) totalPlanejado += (mat.creditos || 0);
-            });
-        });
-    }
+    document.querySelectorAll('#board-container .materia-card').forEach(card => {
+        const codigo = card.dataset.codigo;
+        const mat = window.materiasData.find(m => m.codigo === codigo);
+        
+        if (mat) {
+            totalPlanejado += mat.creditos;
+        } else {
+            const chipCred = card.querySelector('.card-chip.creditos');
+            if (chipCred) {
+                const valor = parseInt(chipCred.textContent);
+                if (!isNaN(valor)) totalPlanejado += valor;
+            }
+        }
+    });
 
-    // --- 3. Atualizar Texto ---
     counterElement.innerText = `${totalPlanejado} / ${totalExigido}`;
     
-    // Bônus: Muda de cor se completou
-    if (totalPlanejado >= totalExigido && totalExigido > 0) {
-        counterElement.style.background = "#27ae60"; // Verde
+    if (totalExigido > 0 && totalPlanejado >= totalExigido) {
+        counterElement.classList.add('completed');
     } else {
-        counterElement.style.background = "rgba(255,255,255,0.2)"; // Padrão
+        counterElement.classList.remove('completed');
     }
 }
 
