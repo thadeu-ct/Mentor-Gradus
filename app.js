@@ -350,6 +350,7 @@ function validarBoardEmCascata() {
 
     console.log("--- VALIDAÇÃO EM CASCATA CONCLUÍDA ---");
     updateCreditCounters();
+    atualizarContadorCreditos();
     processarEstadoDoBackend();
 }
 
@@ -433,6 +434,7 @@ function processarEstadoDoBackend(materiaManual = null) {
 
         filtrarPool(); 
         updateCreditCounters();
+        atualizarContadorCreditos();
     })
     .catch(error => console.error("Erro ao conectar com o backend:", error));
 }
@@ -868,6 +870,7 @@ function addDragEventsToTarget(target) {
             updateCreditCounters();
             processarEstadoDoBackend(); 
             validarBoardEmCascata();
+            atualizarContadorCreditos();
         
         } else if (target.classList.contains('grid-dropzone')) {
             
@@ -981,6 +984,7 @@ function deletePeriod(event) {
     renumberPeriods();
     updateCreditCounters();
     validarBoardEmCascata();
+    atualizarContadorCreditos();
 }
 
 function addPeriodColumn() {
