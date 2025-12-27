@@ -590,14 +590,18 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    padding-right: 5px;
+    padding: 1.5rem 1.5rem 1rem 3.5rem; 
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
 .pool-header h3 {
     margin: 0;
     font-size: 1.1rem;
     color: #2c3e50;
+    padding: 0 !important; 
+    border: none !important;
 }
 
 #global-credit-counter {
@@ -633,7 +637,6 @@ h1 {
     margin: 0;
     padding: 1.5rem 1.5rem 1rem 1.5rem;
     padding-left: 3.5rem; 
-    border-bottom: 1px solid #f0f0f0;
     flex-shrink: 0;
 }
 
