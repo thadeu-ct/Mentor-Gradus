@@ -531,7 +531,8 @@ function renderGrupoPendenteNoPool(grupo) {
     
     const item = document.createElement('div');
     item.className = 'pool-item-grupo';
-    item.id = 'grupo-' + grupo.codigo_grupo;
+    // Garante IDs únicos e válidos removendo caracteres especiais
+    item.id = 'grupo-' + grupo.codigo_grupo.replace(/[^a-zA-Z0-9]/g, '');
     item.dataset.faltando = grupo.faltando;
 
     item.dataset.codigo = normalizeText(grupo.codigo_grupo);
@@ -542,7 +543,14 @@ function renderGrupoPendenteNoPool(grupo) {
         <span class="pool-item-chip">${grupo.faltando} Créd.</span>
     `;
     
-    item.addEventListener('click', () => abrirModalSelecao(grupo.codigo_grupo, grupo.faltando));
+    // CORREÇÃO: Usamos onclick direto com stopPropagation para garantir que o clique funcione
+    // e não seja interrompido por listeners globais de drag-and-drop.
+    item.onclick = function(e) {
+        e.stopPropagation(); 
+        console.log("Clique no grupo detectado:", grupo.codigo_grupo);
+        abrirModalSelecao(grupo.codigo_grupo, grupo.faltando);
+    };
+    
     poolContainer.appendChild(item);
 }
 
@@ -815,8 +823,6 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
 
     const targetPeriodNum = parseInt(targetColumnId.replace('p', ''), 10);
     
-    // Convertemos para Arrays para facilitar a checagem, mas sets são mais rápidos. 
-    // Vamos manter sets para a função auxiliar.
     const cursadasAnteriores = getMateriasCursadasAte(targetColumnId);
     const materiasNoMesmoPeriodo = getMateriasNoPeriodo(targetColumnId);
     const creditosAcumulados = getCreditosAcumuladosAte(targetPeriodNum);
@@ -840,7 +846,6 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         for (const grupo of prereqs) {
             if (grupo.length === 0) { algumGrupoValido = true; break; }
             
-            // AQUI MUDOU: Usa a função inteligente
             const faltantes = grupo.filter(cod => !requisitoEstaSatisfeito(cod, cursadasAnteriores));
             
             if (faltantes.length === 0) {
@@ -853,10 +858,9 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         
         if (!algumGrupoValido) {
             const nomesFaltantes = materiasFaltantesDoMelhorGrupo.map(cod => {
-                // Tenta achar nome da matéria OU usa o nome do grupo se existir
                 const m = window.materiasData.find(x => x.codigo === cod);
                 if (m) return m.nome;
-                if (window.dadosOptativas[cod]) return `Grupo ${cod}`; // Mostra que é um grupo
+                if (window.dadosOptativas[cod]) return `Grupo ${cod}`; 
                 return cod;
             }).join(', ');
 
@@ -872,7 +876,6 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
     const correqs = materia.correq || [];
     if (correqs.length > 0 && !(correqs.length === 1 && correqs[0].length === 0)) {
         for (const grupo of correqs) {
-            // AQUI MUDOU: Usa a função inteligente combinando os dois sets
             const setCombinado = new Set([...cursadasAnteriores, ...materiasNoMesmoPeriodo]);
             
             const faltantes = grupo.filter(cod => !requisitoEstaSatisfeito(cod, setCombinado));
@@ -926,10 +929,10 @@ function addDragEventsToTarget(target) {
             const isNewAdd = (sourceColumnId !== targetColumnId);
             const creditosExcedidos = isNewAdd && (creditosAtuais + creditosSendoArrastados > MAX_CREDITS_PER_PERIOD);
 
-            const cursadasSet = getMateriasCursadasAte(targetColumnId);
-            const prereqsOK = checkPrerequisitos(materia, cursadasSet);
+            const validacao = validarRegrasDeNegocio(materia, targetColumnId);
 
-            if (creditosExcedidos || !prereqsOK) {
+            // Se estourou crédito OU regra de negócio falhou (exceto correq), fica vermelho
+            if (creditosExcedidos || (!validacao.ok && validacao.motivo !== 'correq')) {
                 target.classList.add('drag-invalid');
                 target.classList.remove('drag-over');
             } else {
@@ -972,6 +975,26 @@ function addDragEventsToTarget(target) {
             const sourceColumnId = sourceColumnEl ? sourceColumnEl.dataset.columnId : 'pool';
             const isNewAdd = (sourceColumnId !== targetColumnId);
 
+            // --- 1. TRAVA DE GRUPO (NOVO) ---
+            // Verifica se a matéria exige um GRUPO (ex: INF0307) que ainda não foi escolhido.
+            // Se sim, impede o drop e avisa o usuário.
+            if (materia.correq && materia.correq.length > 0 && window.dadosOptativas) {
+                const cursadas = getMateriasCursadasAte(targetColumnId);
+                const noPeriodo = getMateriasNoPeriodo(targetColumnId);
+                const setCombinado = new Set([...cursadas, ...noPeriodo]);
+
+                for (let grupo of materia.correq) {
+                    for (let codCorreq of grupo) {
+                        // Se é um grupo (existe em dadosOptativas) E não tem nenhuma opção dele satisfeita
+                        if (window.dadosOptativas[codCorreq] && !requisitoEstaSatisfeito(codCorreq, setCombinado)) {
+                            alert(`✋ Ação Bloqueada!\n\nEsta matéria exige o grupo ${codCorreq} como correquisito.\n\nPor favor, escolha primeiro uma matéria para o grupo ${codCorreq} (clique nele na lista lateral) e adicione-a ao período.`);
+                            return; // Cancela o drop aqui mesmo
+                        }
+                    }
+                }
+            }
+
+            // --- 2. PREPARAÇÃO DO AUTO-PULL (Arrastar Junto) ---
             let correquisitosParaAdicionar = [];
             
             if (materia.correq && materia.correq.length > 0) {
@@ -986,6 +1009,7 @@ function addDragEventsToTarget(target) {
                         if (!jaTem) {
                             const matCorreq = window.materiasData.find(m => m.codigo === codCorreq);
                             
+                            // Só puxa se for matéria concreta (se matCorreq existir)
                             if (matCorreq) {
                                 const cardJaExiste = document.getElementById("card-" + codCorreq);
                                 if (!cardJaExiste) {
@@ -1002,11 +1026,13 @@ function addDragEventsToTarget(target) {
             let creditosExtras = 0;
             correquisitosParaAdicionar.forEach(c => creditosExtras += c.creditos);
             
+            // Verifica se cabe tudo (Matéria Principal + Correquisitos)
             if (isNewAdd && (creditosAtuais + creditosSendoArrastados + creditosExtras > MAX_CREDITS_PER_PERIOD)) {
                  alert(`Não há espaço suficiente para adicionar ${materia.codigo} e seus correquisitos (${correquisitosParaAdicionar.map(c=>c.codigo).join(',')}). Limite de 30 créditos excedido.`);
                  return;
             }
 
+            // Validação final de regras (exceto correq que estamos resolvendo agora)
             const validacao = validarRegrasDeNegocio(materia, targetColumnId);
 
             if (!validacao.ok && validacao.motivo !== 'correq') {
@@ -1018,6 +1044,9 @@ function addDragEventsToTarget(target) {
                 return;
             }
             
+            // --- EFETIVA O DROP ---
+
+            // Adiciona a Principal
             if (sourceType === 'card' && draggedItem) {
                 target.appendChild(draggedItem);
             } else if (sourceType === 'pool') {
@@ -1030,6 +1059,7 @@ function addDragEventsToTarget(target) {
                 }
             }
 
+            // Adiciona os Correquisitos (Auto-Pull)
             correquisitosParaAdicionar.forEach(matCorreq => {
                 const cardExistente = document.getElementById("card-" + matCorreq.codigo);
                 if (cardExistente) {
@@ -1065,6 +1095,7 @@ function addDragEventsToTarget(target) {
                 updateCreditCounters();
                 processarEstadoDoBackend(); 
                 validarBoardEmCascata();
+                atualizarContadorCreditos();
             }
             
             else if (sourceType === 'grade-card') {
