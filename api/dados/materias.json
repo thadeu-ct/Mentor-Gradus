@@ -578,7 +578,7 @@
     { 
         "codigo": "ENG4061",
          "nome": "Projeto Robótica",
-         "creditos": 2,
+         "creditos": 4,
          "min-cred": 0,
          "prereqs": [["ENG4033"]],
          "correq": [[]]
