@@ -119,3 +119,15 @@ def api_get_todas_materias():
     lista_materias = list(dados_mat_map.values())
     
     return jsonify(lista_materias)
+
+# --- Endpoint 6: Enviar dicionário de Optativas (Para validação de grupos no Frontend) ---
+@app.route("/api/get-dados-optativas", methods=['GET'])
+def api_get_dados_optativas():
+    """
+    Retorna o JSON completo de optativas para que o JS possa 
+    resolver dependências de grupos (Ex: saber que INF1037 satisfaz INF0307).
+    """
+    if not DADOS_CARREGADOS:
+        return jsonify({"erro": "Dados não carregados"}), 500
+    
+    return jsonify(dados_opt)

@@ -1,6 +1,7 @@
 // Banco de dados local de matérias (cache)
 window.materiasData = []; 
 window.estadoBackend = null;
+window.dadosOptativas = {};
 let dadosFormacoes = {};
 let dadosDominios = {};
 let periodCounter = 2;
@@ -252,6 +253,11 @@ async function carregarDadosIniciais() {
         popularDropdown('#formacoes-options', Object.keys(dadosFormacoes));
         popularDropdown('#dominios-options', Object.keys(dadosDominios));
         
+        const optResponse = await fetch('/api/get-dados-optativas');
+        if (optResponse.ok) {
+            window.dadosOptativas = await optResponse.json();
+        }
+
         console.log("Dados iniciais carregados e Globais:", { dadosFormacoes, dadosDominios });
 
     } catch (error) {
@@ -809,10 +815,13 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
 
     const targetPeriodNum = parseInt(targetColumnId.replace('p', ''), 10);
     
+    // Convertemos para Arrays para facilitar a checagem, mas sets são mais rápidos. 
+    // Vamos manter sets para a função auxiliar.
     const cursadasAnteriores = getMateriasCursadasAte(targetColumnId);
-    const creditosAcumulados = getCreditosAcumuladosAte(targetPeriodNum);
     const materiasNoMesmoPeriodo = getMateriasNoPeriodo(targetColumnId);
+    const creditosAcumulados = getCreditosAcumuladosAte(targetPeriodNum);
 
+    // 1. Valida Créditos
     const minCred = materia["min-cred"] || 0;
     if (minCred > 0 && creditosAcumulados < minCred) {
         return { 
@@ -822,6 +831,7 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         };
     }
 
+    // 2. Valida Pré-requisitos (Estritamente ANTES)
     const prereqs = materia.prereqs_funcionais || materia.prereqs || [];
     if (prereqs.length > 0 && !(prereqs.length === 1 && prereqs[0].length === 0)) {
         let algumGrupoValido = false;
@@ -830,7 +840,8 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         for (const grupo of prereqs) {
             if (grupo.length === 0) { algumGrupoValido = true; break; }
             
-            const faltantes = grupo.filter(cod => !cursadasAnteriores.has(cod));
+            // AQUI MUDOU: Usa a função inteligente
+            const faltantes = grupo.filter(cod => !requisitoEstaSatisfeito(cod, cursadasAnteriores));
             
             if (faltantes.length === 0) {
                 algumGrupoValido = true;
@@ -842,8 +853,11 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         
         if (!algumGrupoValido) {
             const nomesFaltantes = materiasFaltantesDoMelhorGrupo.map(cod => {
+                // Tenta achar nome da matéria OU usa o nome do grupo se existir
                 const m = window.materiasData.find(x => x.codigo === cod);
-                return m ? m.nome : cod;
+                if (m) return m.nome;
+                if (window.dadosOptativas[cod]) return `Grupo ${cod}`; // Mostra que é um grupo
+                return cod;
             }).join(', ');
 
             return { 
@@ -854,21 +868,27 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         }
     }
 
+    // 3. Valida Correquisitos (ANTES ou AGORA)
     const correqs = materia.correq || [];
     if (correqs.length > 0 && !(correqs.length === 1 && correqs[0].length === 0)) {
         for (const grupo of correqs) {
-            const faltantes = grupo.filter(cod => !cursadasAnteriores.has(cod) && !materiasNoMesmoPeriodo.has(cod));
+            // AQUI MUDOU: Usa a função inteligente combinando os dois sets
+            const setCombinado = new Set([...cursadasAnteriores, ...materiasNoMesmoPeriodo]);
+            
+            const faltantes = grupo.filter(cod => !requisitoEstaSatisfeito(cod, setCombinado));
             
             if (faltantes.length > 0) {
                  const nomesFaltantes = faltantes.map(cod => {
                     const m = window.materiasData.find(x => x.codigo === cod);
-                    return m ? m.nome : cod;
+                    if (m) return m.nome;
+                    if (window.dadosOptativas[cod]) return `Grupo ${cod}`;
+                    return cod;
                 }).join(', ');
                 
                 return { 
                     ok: false, 
                     motivo: 'correq',
-                    msg: `Correquisitos faltando no período atual ou anteriores: ${nomesFaltantes}`
+                    msg: `Correquisitos faltando (no período atual ou anteriores): ${nomesFaltantes}`
                 };
             }
         }
@@ -961,8 +981,11 @@ function addDragEventsToTarget(target) {
                 materia.correq.forEach(grupo => {
                     if(!grupo) return;
                     grupo.forEach(codCorreq => {
-                        if (!cursadas.has(codCorreq) && !noPeriodo.has(codCorreq)) {
+                        const jaTem = requisitoEstaSatisfeito(codCorreq, cursadas) || requisitoEstaSatisfeito(codCorreq, noPeriodo);
+                        
+                        if (!jaTem) {
                             const matCorreq = window.materiasData.find(m => m.codigo === codCorreq);
+                            
                             if (matCorreq) {
                                 const cardJaExiste = document.getElementById("card-" + codCorreq);
                                 if (!cardJaExiste) {
@@ -1314,6 +1337,26 @@ function atualizarContadorCreditos() {
     } else {
         counterElement.classList.remove('completed');
     }
+}
+
+/**
+ * Verifica se um código (ex: "INF0307") está satisfeito.
+ * Retorna TRUE se:
+ * 1. O código exato está no set (Ex: "ENG1234").
+ * 2. O código é um GRUPO e alguma matéria desse grupo está no set.
+ */
+function requisitoEstaSatisfeito(codigoRequisito, setMaterias) {
+    // 1. Checa direto
+    if (setMaterias.has(codigoRequisito)) return true;
+
+    // 2. Checa se é grupo
+    if (window.dadosOptativas && window.dadosOptativas[codigoRequisito]) {
+        const opcoes = window.dadosOptativas[codigoRequisito].Opções || [];
+        // Se ALGUMA das opções do grupo estiver presente, tá valendo!
+        return opcoes.some(opcaoCod => setMaterias.has(opcaoCod));
+    }
+
+    return false;
 }
 
 document.addEventListener("DOMContentLoaded", initializeApp);
