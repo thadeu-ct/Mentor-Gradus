@@ -531,7 +531,7 @@ function renderGrupoPendenteNoPool(grupo) {
     
     const item = document.createElement('div');
     item.className = 'pool-item-grupo';
-    // Garante IDs únicos e válidos removendo caracteres especiais
+    // Garante IDs únicos e limpos
     item.id = 'grupo-' + grupo.codigo_grupo.replace(/[^a-zA-Z0-9]/g, '');
     item.dataset.faltando = grupo.faltando;
 
@@ -543,11 +543,11 @@ function renderGrupoPendenteNoPool(grupo) {
         <span class="pool-item-chip">${grupo.faltando} Créd.</span>
     `;
     
-    // CORREÇÃO: Usamos onclick direto com stopPropagation para garantir que o clique funcione
-    // e não seja interrompido por listeners globais de drag-and-drop.
+    // --- CORREÇÃO AQUI ---
+    // Usamos onclick direto para garantir prioridade sobre outros eventos
     item.onclick = function(e) {
-        e.stopPropagation(); 
-        console.log("Clique no grupo detectado:", grupo.codigo_grupo);
+        e.stopPropagation(); // Impede que o clique "vaze" e seja cancelado
+        console.log("Abrindo modal para:", grupo.codigo_grupo);
         abrirModalSelecao(grupo.codigo_grupo, grupo.faltando);
     };
     
@@ -827,7 +827,7 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
     const materiasNoMesmoPeriodo = getMateriasNoPeriodo(targetColumnId);
     const creditosAcumulados = getCreditosAcumuladosAte(targetPeriodNum);
 
-    // 1. Valida Créditos
+    // 1. Valida Créditos Mínimos
     const minCred = materia["min-cred"] || 0;
     if (minCred > 0 && creditosAcumulados < minCred) {
         return { 
@@ -838,7 +838,10 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
     }
 
     // 2. Valida Pré-requisitos (Estritamente ANTES)
-    const prereqs = materia.prereqs_funcionais || materia.prereqs || [];
+    // CORREÇÃO: Priorizamos 'materia.prereqs' (original) em vez de 'prereqs_funcionais' (expandido).
+    // Como temos a função 'requisitoEstaSatisfeito' que entende grupos, usar o original é mais seguro e gera mensagens melhores.
+    const prereqs = materia.prereqs || materia.prereqs_funcionais || [];
+    
     if (prereqs.length > 0 && !(prereqs.length === 1 && prereqs[0].length === 0)) {
         let algumGrupoValido = false;
         let materiasFaltantesDoMelhorGrupo = [];
@@ -846,21 +849,29 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
         for (const grupo of prereqs) {
             if (grupo.length === 0) { algumGrupoValido = true; break; }
             
+            // Verifica usando a lógica inteligente (checa código direto OU se é grupo satisfeito)
             const faltantes = grupo.filter(cod => !requisitoEstaSatisfeito(cod, cursadasAnteriores));
             
             if (faltantes.length === 0) {
                 algumGrupoValido = true;
                 break;
             } else {
+                // Guarda o erro para exibir se nada der certo
                 if (materiasFaltantesDoMelhorGrupo.length === 0) materiasFaltantesDoMelhorGrupo = faltantes;
             }
         }
         
         if (!algumGrupoValido) {
             const nomesFaltantes = materiasFaltantesDoMelhorGrupo.map(cod => {
+                // Tenta pegar o nome da matéria
                 const m = window.materiasData.find(x => x.codigo === cod);
                 if (m) return m.nome;
-                if (window.dadosOptativas[cod]) return `Grupo ${cod}`; 
+                
+                // Se não achou matéria, vê se é um Grupo de Optativa conhecido
+                if (window.dadosOptativas && window.dadosOptativas[cod]) {
+                    return `Grupo ${cod}`; // Retorna "Grupo CRE0712" em vez de uma opção aleatória
+                }
+                
                 return cod;
             }).join(', ');
 
@@ -884,7 +895,7 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
                  const nomesFaltantes = faltantes.map(cod => {
                     const m = window.materiasData.find(x => x.codigo === cod);
                     if (m) return m.nome;
-                    if (window.dadosOptativas[cod]) return `Grupo ${cod}`;
+                    if (window.dadosOptativas && window.dadosOptativas[cod]) return `Grupo ${cod}`;
                     return cod;
                 }).join(', ');
                 
