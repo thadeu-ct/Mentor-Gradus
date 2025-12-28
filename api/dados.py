@@ -153,56 +153,76 @@ def coletarGruposOptativos(formacoes: list, dominios: list, enfase_escolhida: st
     return grupos
 
 def materia_esta_liberada(codigo_materia, obrigatorias_set, dados_mat_map):
-    """Verifica se os pré-requisitos da matéria estão no set fornecido."""
+    """
+    Verifica se a matéria está liberada baseada em:
+    1. Pré-requisitos (Devem estar cursados/no set)
+    2. Correquisitos (Devem estar no set)
+    3. Mínimo de Créditos (Soma dos créditos das matérias no set deve ser >= min-cred)
+    """
     materia_info = dados_mat_map.get(codigo_materia)
-    
     if not materia_info:
         return False
-        
-    prereqs_grupos = materia_info.get("prereqs", [[]])
+
+    min_cred = materia_info.get("min-cred", 0)
+    if min_cred > 0:
+        creditos_acumulados = sum(
+            dados_mat_map[cod].get("creditos", 0) 
+            for cod in obrigatorias_set 
+            if cod in dados_mat_map
+        )
+        if creditos_acumulados < min_cred:
+            return False
+
+    prereqs_grupos = materia_info.get("prereqs_funcionais", materia_info.get("prereqs", [[]]))
     
-    if not prereqs_grupos or prereqs_grupos == [[]]:
-        return True
-        
-    for grupo_prereq in prereqs_grupos:
-        if not grupo_prereq: return True 
-        grupo_valido = True
-        for materia_prereq in grupo_prereq:
-            if materia_prereq not in obrigatorias_set:
-                grupo_valido = False
+    if prereqs_grupos and prereqs_grupos != [[]]:
+        algum_grupo_valido = False
+        for grupo_prereq in prereqs_grupos:
+            if not grupo_prereq: 
+                algum_grupo_valido = True
                 break
-        if grupo_valido: return True
             
-    return False
+            este_grupo_ok = True
+            for materia_prereq in grupo_prereq:
+                if materia_prereq not in obrigatorias_set:
+                    este_grupo_ok = False
+                    break
+            
+            if este_grupo_ok:
+                algum_grupo_valido = True
+                break
+        
+        if not algum_grupo_valido:
+            return False
+
+    correqs = materia_info.get("correq", [[]])
+    if correqs and correqs != [[]]:
+        for grupo_correq in correqs:
+            if not grupo_correq: continue
+            for materia_correq in grupo_correq:
+                if materia_correq not in obrigatorias_set:
+                    return False
+
+    return True
 
 # --- FUNÇÃO PRINCIPAL DE PROCESSAMENTO (ATUALIZADA) ---
-
-# (Substitua sua função 'processar_selecao')
 def processar_selecao(formacoes, dominios, enfase_escolhida, materias_pre_selecionadas, dados_form, dados_dom, dados_mat_map, dados_opt):
     """
     Função principal que roda toda a lógica de backend.
     Recebe as seleções do usuário e retorna o estado calculado.
     """
     
-    # 1. Pega obrigatórias base (JÁ INCLUI ÊNFASE)
     materias_obrigatorias_base = coletarDados(
         formacoes, dominios, enfase_escolhida, dados_form, dados_dom
     )
     
-    # 2. Adiciona pré-selecionadas
     materias_obrigatorias_set = materias_obrigatorias_base.union(set(materias_pre_selecionadas))
     
     optativas_manuais = set(materias_pre_selecionadas) - materias_obrigatorias_base
     
-    # 3. Coleta grupos (JÁ INCLUI ÊNFASE)
     grupos_a_preencher = coletarGruposOptativos(
         formacoes, dominios, enfase_escolhida, dados_form, dados_dom
     )
-    
-    # (O restante da função 'processar_selecao' continua EXATAMENTE IGUAL...)
-    # ... (bloco 'for codigo_grupo, info_grupo in grupos_a_preencher.items():')
-    # ... (bloco 'while True:')
-    # ... (bloco '5. Preparar o retorno')
     
     for codigo_grupo, info_grupo in grupos_a_preencher.items():
         if codigo_grupo in dados_opt:

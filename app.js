@@ -1,5 +1,6 @@
 // Banco de dados local de matérias (cache)
 window.materiasData = []; 
+window.estadoBackend = null;
 let dadosFormacoes = {};
 let dadosDominios = {};
 let periodCounter = 2;
@@ -311,10 +312,10 @@ function validarBoardEmCascata() {
                 const materia = getMateriaDataFromCard(card);
                 if (!materia) continue;
 
-                const prereqsOK = checkPrerequisitos(materia, materiasValidasAcumuladas);
+                const validacao = validarRegrasDeNegocio(materia, `p${i}`);
                 const creditosOK = (creditosNestePeriodo + materia.creditos) <= MAX_CREDITS_PER_PERIOD;
 
-                if (prereqsOK && creditosOK) {
+                if (validacao.ok && creditosOK) {
                     creditosNestePeriodo += materia.creditos;
                     materiasValidasNestePeriodo.add(materia.codigo);
                 } else {
@@ -414,6 +415,9 @@ function processarEstadoDoBackend(materiaManual = null) {
     .then(response => response.ok ? response.json() : Promise.reject(response.statusText))
     .then(estado => {
         console.log("Recebido do Python:", estado);
+
+        window.estadoBackend = estado;
+
         const poolContainer = document.getElementById("pool-list-container");
         if (!poolContainer) return;
         poolContainer.innerHTML = ''; 
@@ -764,6 +768,78 @@ function atualizarDropdownEnfase(formacao) {
 }
 
 // --- LÓGICA DE DRAG AND DROP (Limite de 30 créditos) ---
+function getCreditosAcumuladosAte(targetPeriodNum) {
+    let total = 0;
+    for (let i = 1; i < targetPeriodNum; i++) {
+        const colunaId = `column-p${i}`;
+        const coluna = document.getElementById(colunaId);
+        if (coluna) {
+            coluna.querySelectorAll('.materia-card').forEach(card => {
+                const mat = getMateriaDataFromCard(card);
+                if (mat) total += mat.creditos;
+            });
+        }
+    }
+    return total;
+}
+
+function getMateriasNoPeriodo(periodoId) {
+    const setMaterias = new Set();
+    const coluna = document.getElementById(`column-${periodoId}`);
+    if (coluna) {
+        coluna.querySelectorAll('.materia-card').forEach(card => {
+            setMaterias.add(card.dataset.codigo);
+        });
+    }
+    return setMaterias;
+}
+
+function validarRegrasDeNegocio(materia, targetColumnId) {
+    if (!materia) return { ok: true };
+
+    const targetPeriodNum = parseInt(targetColumnId.replace('p', ''), 10);
+    
+    const cursadasAnteriores = getMateriasCursadasAte(targetColumnId);
+    const creditosAcumulados = getCreditosAcumuladosAte(targetPeriodNum);
+    const materiasNoMesmoPeriodo = getMateriasNoPeriodo(targetColumnId);
+
+    const minCred = materia["min-cred"] || 0;
+    if (minCred > 0 && creditosAcumulados < minCred) {
+        return { ok: false, motivo: 'creditos' };
+    }
+
+    const prereqs = materia.prereqs_funcionais || materia.prereqs || [];
+    if (prereqs.length > 0 && !(prereqs.length === 1 && prereqs[0].length === 0)) {
+        let algumGrupoValido = false;
+        
+        for (const grupo of prereqs) {
+            if (grupo.length === 0) { algumGrupoValido = true; break; }
+            
+            const grupoOk = grupo.every(cod => cursadasAnteriores.has(cod));
+            if (grupoOk) {
+                algumGrupoValido = true;
+                break;
+            }
+        }
+        if (!algumGrupoValido) return { ok: false, motivo: 'prereq' };
+    }
+
+    const correqs = materia.correq || [];
+    if (correqs.length > 0 && !(correqs.length === 1 && correqs[0].length === 0)) {
+        for (const grupo of correqs) {
+            for (const cod of grupo) {
+                const estaAntes = cursadasAnteriores.has(cod);
+                const estaAgora = materiasNoMesmoPeriodo.has(cod);
+                
+                if (!estaAntes && !estaAgora) {
+                    return { ok: false, motivo: 'correq' };
+                }
+            }
+        }
+    }
+
+    return { ok: true };
+}
 
 function addDragEventsToTarget(target) {
     function getColumnCredits(colunaEl) {
@@ -841,10 +917,9 @@ function addDragEventsToTarget(target) {
             const isNewAdd = (sourceColumnId !== targetColumnId);
             const creditosExcedidos = isNewAdd && (creditosAtuais + creditosSendoArrastados > MAX_CREDITS_PER_PERIOD);
 
-            const cursadasSet = getMateriasCursadasAte(targetColumnId);
-            const prereqsOK = checkPrerequisitos(materia, cursadasSet);
+            const validacao = validarRegrasDeNegocio(materia, targetColumnId);
 
-            if (creditosExcedidos || !prereqsOK) {
+            if (creditosExcedidos || !validacao.ok) {
                 console.warn("DROP BLOQUEADO: Violação de créditos ou pré-requisitos.");
                 target.closest('.board-column').classList.add('drag-invalid-shake');
                 setTimeout(() => {
@@ -1130,77 +1205,33 @@ function atualizarContadorCreditos() {
     const counterElement = document.getElementById('global-credit-counter');
     if (!counterElement) return;
 
-    let totalExigido = 0;
-    
-    const formacaoChip = document.querySelector("#formacoes-selection .chip-selected");
-    const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
-    const dominiosChips = document.querySelectorAll("#dominios-selection .chip-selected");
-
-    const somarCreditosPorCodigo = (listaCodigos) => {
-        let soma = 0;
-        if (!listaCodigos) return 0;
-        listaCodigos.forEach(cod => {
-            const mat = window.materiasData.find(m => m.codigo === cod);
-            if (mat) soma += (mat.creditos || 0);
-        });
-        return soma;
-    };
-
-    const somarCreditosGrupos = (listaGrupos) => {
-        let soma = 0;
-        if (!listaGrupos) return 0;
-        listaGrupos.forEach(item => {
-            if (Array.isArray(item) && item.length > 1) soma += (item[1] || 0);
-        });
-        return soma;
-    };
-
-    if (formacaoChip && window.dadosFormacoes) {
-        const nomeCurso = formacaoChip.dataset.value;
-        const dadosCurso = window.dadosFormacoes[nomeCurso];
-
-        if (dadosCurso) {
-            totalExigido += somarCreditosPorCodigo(dadosCurso.obrigatórias);
-            totalExigido += somarCreditosGrupos(dadosCurso.optativas);
-            totalExigido += somarCreditosGrupos(dadosCurso.eletivas);
-
-            if (enfaseChip) {
-                const nomeEnfase = enfaseChip.dataset.value;
-                const dadosEnfase = dadosCurso.enfase ? dadosCurso.enfase[nomeEnfase] : null;
-                if (dadosEnfase) {
-                    totalExigido += somarCreditosPorCodigo(dadosEnfase.obrigatórias);
-                    totalExigido += somarCreditosGrupos(dadosEnfase.optativas);
-                    totalExigido += somarCreditosGrupos(dadosEnfase.eletivas);
-                }
-            }
-        }
-    }
-
-    dominiosChips.forEach(chip => {
-        const nomeDominio = chip.dataset.value;
-        const dadosDom = window.dadosDominios ? window.dadosDominios[nomeDominio] : null;
-        if (dadosDom) {
-            totalExigido += somarCreditosPorCodigo(dadosDom.obrigatórias);
-            totalExigido += somarCreditosGrupos(dadosDom.optativas);
-        }
-    });
-
     let totalPlanejado = 0;
-    
     document.querySelectorAll('#board-container .materia-card').forEach(card => {
         const codigo = card.dataset.codigo;
         const mat = window.materiasData.find(m => m.codigo === codigo);
-        
         if (mat) {
             totalPlanejado += mat.creditos;
         } else {
             const chipCred = card.querySelector('.card-chip.creditos');
-            if (chipCred) {
-                const valor = parseInt(chipCred.textContent);
-                if (!isNaN(valor)) totalPlanejado += valor;
-            }
+            if(chipCred) totalPlanejado += parseInt(chipCred.textContent) || 0;
         }
     });
+
+    let totalExigido = 0;
+    
+    if (window.estadoBackend) {
+        if (window.estadoBackend.obrigatorias) {
+            window.estadoBackend.obrigatorias.forEach(m => totalExigido += m.creditos);
+        }
+        
+        if (window.estadoBackend.optativas_escolhidas) {
+             window.estadoBackend.optativas_escolhidas.forEach(m => totalExigido += m.creditos);
+        }
+        
+        if (window.estadoBackend.grupos_pendentes) {
+             window.estadoBackend.grupos_pendentes.forEach(g => totalExigido += g.faltando);
+        }
+    }
 
     counterElement.innerText = `${totalPlanejado} / ${totalExigido}`;
     
