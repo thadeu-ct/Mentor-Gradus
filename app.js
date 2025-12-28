@@ -78,6 +78,10 @@ function createMateriaCard(materia, tipo = 'obrigatoria') {
     const prereqsTexto = (materia.prereqs && materia.prereqs.length > 0 && materia.prereqs[0].length > 0) 
         ? materia.prereqs.map(grupo => grupo.join(' E ')).join(' OU ') 
         : 'Nenhum';
+    
+    const correqsTexto = (materia.correq && materia.correq.length > 0 && materia.correq[0].length > 0)
+        ? materia.correq.map(grupo => grupo.join(' E ')).join(' OU ')
+        : 'Nenhum';
 
     card.innerHTML = `
         <div class="card-header-bar" style="background-color: ${corBarra};"></div> 
@@ -88,8 +92,10 @@ function createMateriaCard(materia, tipo = 'obrigatoria') {
             </div>
             <h4 class="card-title">${materia.nome}</h4>
             <div class="card-prereqs">
-                <strong>Pré-requisitos:</strong>
-                <span>${prereqsTexto}</span>
+                <strong>Pré-req:</strong> <span>${prereqsTexto}</span>
+            </div>
+             <div class="card-prereqs" style="margin-top:4px;">
+                <strong>Correq:</strong> <span>${correqsTexto}</span>
             </div>
         </div>
         <div class="card-footer">
@@ -492,17 +498,21 @@ function renderItemNoPool(materia, tipo) {
             // Se não, expande
             item.classList.add('expanded');
             
-            // Pega os pré-requisitos (da chave de DISPLAY)
             const prereqsTexto = (materia.prereqs && materia.prereqs.length > 0 && materia.prereqs[0].length > 0) 
                 ? materia.prereqs.map(grupo => grupo.join(' E ')).join(' OU ') 
                 : 'Nenhum';
 
-            // Injeta o HTML dos detalhes
+            const correqsTexto = (materia.correq && materia.correq.length > 0 && materia.correq[0].length > 0)
+                ? materia.correq.map(grupo => grupo.join(' E ')).join(' OU ')
+                : 'Nenhum';
+
             detailsContainer.innerHTML = `
                 <span class="pool-item-chip creditos">${materia.creditos} Créditos</span>
                 <div class="pool-item-prereqs">
-                    <strong>Pré-requisitos:</strong>
-                    <span>${prereqsTexto}</span>
+                    <strong>Pré-requisitos:</strong> <span>${prereqsTexto}</span>
+                </div>
+                 <div class="pool-item-prereqs" style="margin-top:5px;">
+                    <strong>Correquisitos:</strong> <span>${correqsTexto}</span>
                 </div>
             `;
         }
@@ -805,35 +815,61 @@ function validarRegrasDeNegocio(materia, targetColumnId) {
 
     const minCred = materia["min-cred"] || 0;
     if (minCred > 0 && creditosAcumulados < minCred) {
-        return { ok: false, motivo: 'creditos' };
+        return { 
+            ok: false, 
+            motivo: 'creditos',
+            msg: `Esta matéria exige ${minCred} créditos acumulados (você tem ${creditosAcumulados}).`
+        };
     }
 
     const prereqs = materia.prereqs_funcionais || materia.prereqs || [];
     if (prereqs.length > 0 && !(prereqs.length === 1 && prereqs[0].length === 0)) {
         let algumGrupoValido = false;
+        let materiasFaltantesDoMelhorGrupo = [];
         
         for (const grupo of prereqs) {
             if (grupo.length === 0) { algumGrupoValido = true; break; }
             
-            const grupoOk = grupo.every(cod => cursadasAnteriores.has(cod));
-            if (grupoOk) {
+            const faltantes = grupo.filter(cod => !cursadasAnteriores.has(cod));
+            
+            if (faltantes.length === 0) {
                 algumGrupoValido = true;
                 break;
+            } else {
+                if (materiasFaltantesDoMelhorGrupo.length === 0) materiasFaltantesDoMelhorGrupo = faltantes;
             }
         }
-        if (!algumGrupoValido) return { ok: false, motivo: 'prereq' };
+        
+        if (!algumGrupoValido) {
+            const nomesFaltantes = materiasFaltantesDoMelhorGrupo.map(cod => {
+                const m = window.materiasData.find(x => x.codigo === cod);
+                return m ? m.nome : cod;
+            }).join(', ');
+
+            return { 
+                ok: false, 
+                motivo: 'prereq', 
+                msg: `Pré-requisitos não atendidos. Faltam: ${nomesFaltantes}`
+            };
+        }
     }
 
     const correqs = materia.correq || [];
     if (correqs.length > 0 && !(correqs.length === 1 && correqs[0].length === 0)) {
         for (const grupo of correqs) {
-            for (const cod of grupo) {
-                const estaAntes = cursadasAnteriores.has(cod);
-                const estaAgora = materiasNoMesmoPeriodo.has(cod);
+            const faltantes = grupo.filter(cod => !cursadasAnteriores.has(cod) && !materiasNoMesmoPeriodo.has(cod));
+            
+            if (faltantes.length > 0) {
+                 const nomesFaltantes = faltantes.map(cod => {
+                    const m = window.materiasData.find(x => x.codigo === cod);
+                    return m ? m.nome : cod;
+                }).join(', ');
                 
-                if (!estaAntes && !estaAgora) {
-                    return { ok: false, motivo: 'correq' };
-                }
+                return { 
+                    ok: false, 
+                    motivo: 'correq',
+                    msg: `Correquisitos faltando no período atual ou anteriores: ${nomesFaltantes}`
+                };
             }
         }
     }
@@ -915,33 +951,71 @@ function addDragEventsToTarget(target) {
             const sourceColumnEl = draggedItem.closest('.column-content');
             const sourceColumnId = sourceColumnEl ? sourceColumnEl.dataset.columnId : 'pool';
             const isNewAdd = (sourceColumnId !== targetColumnId);
-            const creditosExcedidos = isNewAdd && (creditosAtuais + creditosSendoArrastados > MAX_CREDITS_PER_PERIOD);
+
+            let correquisitosParaAdicionar = [];
+            
+            if (materia.correq && materia.correq.length > 0) {
+                const cursadas = getMateriasCursadasAte(targetColumnId);
+                const noPeriodo = getMateriasNoPeriodo(targetColumnId);
+                
+                materia.correq.forEach(grupo => {
+                    if(!grupo) return;
+                    grupo.forEach(codCorreq => {
+                        if (!cursadas.has(codCorreq) && !noPeriodo.has(codCorreq)) {
+                            const matCorreq = window.materiasData.find(m => m.codigo === codCorreq);
+                            if (matCorreq) {
+                                const cardJaExiste = document.getElementById("card-" + codCorreq);
+                                if (!cardJaExiste) {
+                                    correquisitosParaAdicionar.push(matCorreq);
+                                } else {
+                                    correquisitosParaAdicionar.push(matCorreq); 
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+            
+            let creditosExtras = 0;
+            correquisitosParaAdicionar.forEach(c => creditosExtras += c.creditos);
+            
+            if (isNewAdd && (creditosAtuais + creditosSendoArrastados + creditosExtras > MAX_CREDITS_PER_PERIOD)) {
+                 alert(`Não há espaço suficiente para adicionar ${materia.codigo} e seus correquisitos (${correquisitosParaAdicionar.map(c=>c.codigo).join(',')}). Limite de 30 créditos excedido.`);
+                 return;
+            }
 
             const validacao = validarRegrasDeNegocio(materia, targetColumnId);
 
-            if (creditosExcedidos || !validacao.ok) {
-                console.warn("DROP BLOQUEADO: Violação de créditos ou pré-requisitos.");
+            if (!validacao.ok && validacao.motivo !== 'correq') {
+                console.warn("DROP BLOQUEADO.");
+                alert(validacao.msg);
+                
                 target.closest('.board-column').classList.add('drag-invalid-shake');
-                setTimeout(() => {
-                    target.closest('.board-column').classList.remove('drag-invalid-shake');
-                }, 500);
+                setTimeout(() => target.closest('.board-column').classList.remove('drag-invalid-shake'), 500);
                 return;
             }
             
             if (sourceType === 'card' && draggedItem) {
                 target.appendChild(draggedItem);
-            } else if (sourceType === 'pool' && target.classList.contains('column-content')) {
+            } else if (sourceType === 'pool') {
                 const cardExistente = document.getElementById("card-" + codigoOriginal);
                 if (cardExistente) {
-                     target.appendChild(cardExistente); 
+                     target.appendChild(cardExistente); 
                 } else { 
-                    const materia = window.materiasData.find(m => m.codigo === codigoOriginal);
-                    if (materia && draggedItem) {
-                        const tipo = draggedItem.classList.contains('pool-item-obrigatoria') ? 'obrigatoria' : 'optativa';
-                        target.appendChild(createMateriaCard(materia, tipo));
-                    }
+                    const tipo = draggedItem.classList.contains('pool-item-obrigatoria') ? 'obrigatoria' : 'optativa';
+                    target.appendChild(createMateriaCard(materia, tipo));
                 }
             }
+
+            correquisitosParaAdicionar.forEach(matCorreq => {
+                const cardExistente = document.getElementById("card-" + matCorreq.codigo);
+                if (cardExistente) {
+                    target.appendChild(cardExistente);
+                } else {
+                    target.appendChild(createMateriaCard(matCorreq, 'obrigatoria'));
+                }
+            });
+
             updateCreditCounters();
             processarEstadoDoBackend(); 
             validarBoardEmCascata();
