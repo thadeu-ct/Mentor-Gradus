@@ -1792,6 +1792,14 @@
          "correq": [[]]
     },
     { 
+        "codigo": "INF1014",
+         "nome": "Seminário",
+         "creditos": 1,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [[]]
+    },
+    { 
         "codigo": "INF1018",
          "nome": "Software Básico",
          "creditos": 4,
