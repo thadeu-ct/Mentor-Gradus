@@ -1240,6 +1240,20 @@ function selecionarMateriaDoModal(materia) {
     processarEstadoDoBackend(materia.codigo);
 }
 
+function requisitoEstaSatisfeito(codigoRequisito, setMaterias) {
+    // 1. Checa direto (Matéria normal)
+    if (setMaterias.has(codigoRequisito)) return true;
+
+    // 2. Checa se é grupo (Optativa)
+    if (window.dadosOptativas && window.dadosOptativas[codigoRequisito]) {
+        const opcoes = window.dadosOptativas[codigoRequisito].Opções || [];
+        // Se ALGUMA das opções do grupo estiver presente, tá valendo!
+        return opcoes.some(opcaoCod => setMaterias.has(opcaoCod));
+    }
+
+    return false;
+}
+
 // Fechando dropdowns ao clicar fora
 document.addEventListener("click", fecharTodosDropdowns);
 

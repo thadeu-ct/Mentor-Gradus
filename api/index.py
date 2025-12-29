@@ -51,18 +51,12 @@ def api_processar_estado():
 # --- Endpoint 2: Formulário de Optativas ---
 @app.route('/api/get-opcoes-grupo', methods=['POST'])
 def api_get_opcoes_grupo():
-    """
-    Endpoint do "formulário". Recebe um código de grupo e o estado atual do board,
-    retorna a lista de matérias VÁLIDAS e LIBERADAS para aquele grupo.
-    """
     if not DADOS_CARREGADOS:
         return jsonify({"erro": "Erro no servidor, dados não carregados"}), 500
         
     data = request.json
     codigo_grupo = data.get('codigo_grupo')
     materias_cursadas_set = set(data.get('materias_cursadas_set', [])) 
-
-    print("API: /api/get-opcoes-grupo chamado para %s" % codigo_grupo)
 
     if not codigo_grupo:
         return jsonify({"erro": "Nenhum codigo_grupo fornecido"}), 400
@@ -71,19 +65,12 @@ def api_get_opcoes_grupo():
     opcoes_validas = []
 
     for materia_cod in opcoes_do_grupo:
-        # Só mostra se:
-        # 1. Não está no set de "já cursadas"
-        # 2. Está liberada pelos pré-requisitos
-        if materia_cod not in materias_cursadas_set and \
-           dados.materia_esta_liberada(materia_cod, materias_cursadas_set, dados_mat_map):
-            
+        if materia_cod not in materias_cursadas_set:
             if materia_cod in dados_mat_map:
                 opcoes_validas.append(dados_mat_map[materia_cod])
             else:
-                # Aviso (API): Matéria %s do grupo %s não encontrada em materias.json
                 pass
     
-    # Ordena as opções alfabeticamente pelo nome
     opcoes_validas.sort(key=lambda m: m.get('nome', ''))
     
     return jsonify(opcoes_validas)
