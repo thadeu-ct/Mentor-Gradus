@@ -490,31 +490,24 @@ function formatarRequisitos(reqs) {
 
 // Configura os eventos de arrastar para uma área (Coluna ou Pool)
 function adicionarEventosDeArrasto(alvo) {
-    
-    alvo.addEventListener('dragover', evento => {
-        evento.preventDefault();
-        const itemArrastado = document.querySelector('.dragging');
-        if(!itemArrastado) return;
+    alvo.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragged = document.querySelector('.dragging');
+        if(!dragged) return;
         
         alvo.classList.add('drag-over');
         
-        // Validação Visual (Feedback Verde/Vermelho)
         if (alvo.classList.contains('column-content')) {
-            const codOriginal = itemArrastado.dataset.codigoOriginal;
-            const materia = encontrarMateria(codOriginal);
-            const idColunaAlvo = alvo.dataset.columnId;
+            const cod = dragged.dataset.codigoOriginal;
+            const materia = encontrarMateria(cod); 
+            const idCol = alvo.dataset.columnId;
+            const valid = validarRegrasDeNegocio(materia, idCol);
             
-            // Aqui usamos a validação rígida. Se faltar correquisito (e ele não estiver lá), fica vermelho.
-            // Isso é esperado visualmente antes de soltar.
-            const validacao = validarRegrasDeNegocio(materia, idColunaAlvo);
-            
-            // Só fica vermelho se for erro de Prereq ou Crédito. 
-            // Se for Correq, deixamos verde (pq vamos puxar junto no drop)
-            if (!validacao.ok && validacao.motivo !== 'correq') {
+            // Vermelho se erro (exceto correq que puxa junto)
+            if (!valid.ok && valid.motivo !== 'correq') {
                 alvo.classList.add('drag-invalid');
                 alvo.classList.remove('drag-over');
             } else {
-                alvo.classList.add('drag-over');
                 alvo.classList.remove('drag-invalid');
             }
         }
@@ -525,86 +518,86 @@ function adicionarEventosDeArrasto(alvo) {
         alvo.classList.remove('drag-invalid');
     });
 
-    alvo.addEventListener('drop', evento => {
-        evento.preventDefault();
+    alvo.addEventListener('drop', e => {
+        e.preventDefault();
         alvo.classList.remove('drag-over');
         alvo.classList.remove('drag-invalid');
 
-        const codOriginal = evento.dataTransfer.getData('materia-codigo-original');
-        const tipoOrigem = evento.dataTransfer.getData('source-type'); 
-        const itemArrastado = document.querySelector('.dragging');
+        const cod = e.dataTransfer.getData('materia-codigo-original');
+        const tipoOrigem = e.dataTransfer.getData('source-type'); 
+        const draggedItem = document.querySelector('.dragging');
         
-        if (!codOriginal || !itemArrastado) return;
+        if (!cod || !draggedItem) return;
 
-        // --- CASO 1: Soltou no BOARD ---
+        // --- Drop no Board ---
         if (alvo.classList.contains('column-content')) {
-            const materia = encontrarMateria(codOriginal);
-            const idColunaAlvo = alvo.dataset.columnId;
-            const isNovo = (itemArrastado.closest('.column-content')?.dataset.columnId !== idColunaAlvo);
+            const materia = encontrarMateria(cod); // Usa o clone
+            const idCol = alvo.dataset.columnId;
+            const isNovo = (draggedItem.closest('.column-content')?.dataset.columnId !== idCol);
 
-            // 1. TRAVA DE GRUPO (Optativas)
-            if (materia.correq && window.dadosOptativas) {
-                const cursadas = obterMateriasCursadasAte(idColunaAlvo);
-                const naColuna = obterMateriasNaColuna(idColunaAlvo);
-                const disponiveis = new Set([...cursadas, ...naColuna]);
-
-                for (let grupo of materia.correq) {
-                    for (let cod of grupo) {
-                        // Se é grupo (tem no JSON) e não tem nenhuma opção satisfeita
-                        if (window.dadosOptativas[cod] && !requisitoEstaSatisfeito(cod, disponiveis)) {
-                            alert(`✋ Ação Bloqueada!\n\nEsta matéria exige o grupo ${cod}.\nEscolha primeiro uma matéria deste grupo (no final da lista lateral).`);
-                            return; 
-                        }
-                    }
-                }
+            // 1. Trava de Grupo (Segurança Final para Optativas não escolhidas)
+            if (materia.correq) {
+               const disponiveis = new Set([...obterMateriasCursadasAte(idCol), ...obterMateriasNaColuna(idCol)]);
+               for(let g of materia.correq) {
+                   for(let c of g) {
+                       // Se ainda pede um grupo genérico, bloqueia
+                       if(window.dadosOptativas[c] && !requisitoEstaSatisfeito(c, disponiveis)) {
+                           alert(`✋ Bloqueado! Exige grupo ${c}. Escolha a optativa primeiro.`);
+                           return;
+                       }
+                   }
+               }
             }
 
-            // 2. PREPARAR AUTO-PULL (Correquisitos Normais)
-            let correquisitosExtras = [];
-            
+            // 2. Preparar Auto-Pull (Identifica quem vem junto)
+            let extras = [];
             if (materia.correq) {
-                const cursadas = obterMateriasCursadasAte(idColunaAlvo);
-                const naColuna = obterMateriasNaColuna(idColunaAlvo);
+                const cursadas = obterMateriasCursadasAte(idCol);
+                const naColuna = obterMateriasNaColuna(idCol);
                 
                 materia.correq.forEach(grupo => {
-                    if(!grupo) return;
-                    grupo.forEach(codCorreq => {
+                    grupo.forEach(codReq => {
                         // Se não cursou e não tá na coluna
-                        if (!cursadas.has(codCorreq) && !naColuna.has(codCorreq)) {
-                            // Tenta achar a matéria real
-                            const matCorreq = window.dadosMaterias.find(m => m.codigo === codCorreq);
-                            
-                            // Se achou (e não é grupo abstrato), adiciona na lista de puxar
-                            if (matCorreq) {
-                                // Verifica se já existe em OUTRO período para mover, ou cria novo
-                                const cardExistente = document.getElementById("card-" + codCorreq);
-                                correquisitosExtras.push({ materia: matCorreq, card: cardExistente });
+                        if (!cursadas.has(codReq) && !naColuna.has(codReq)) {
+                            const matReq = encontrarMateria(codReq);
+                            if (matReq) {
+                                const cardExistente = document.getElementById("card-" + codReq);
+                                extras.push({ materia: matReq, card: cardExistente });
                             }
                         }
                     });
                 });
             }
 
-            // 3. Validação de Créditos (Soma tudo: Principal + Extras)
-            const creditosAtuais = obterCreditosDaColuna(alvo);
-            let creditosSomar = (isNovo ? materia.creditos : 0);
-            correquisitosExtras.forEach(item => {
-                // Se o extra é novo na coluna (não existia ou veio de outro lugar), soma
-                // Simplificação: soma sempre para garantir segurança
-                creditosSomar += item.materia.creditos;
-            });
+            // 2.5 [NOVO] Validação dos Extras (A Blitz nos Amigos)
+            // Aqui verificamos se o INF1037 pode entrar (tem CTC4002?)
+            for (const itemExtra of extras) {
+                // Validamos como se ele fosse entrar nesta coluna
+                const validacaoExtra = validarRegrasDeNegocio(itemExtra.materia, idCol);
+                
+                // Se o amigo tiver problema (ex: falta pré-requisito), aborta tudo!
+                if (!validacaoExtra.ok) {
+                    alert(`Não é possível adicionar ${materia.codigo}.\nO correquisito automático ${itemExtra.materia.codigo} possui pendências:\n\n${validacaoExtra.msg}`);
+                    alvo.closest('.board-column').classList.add('drag-invalid-shake');
+                    setTimeout(() => alvo.closest('.board-column').classList.remove('drag-invalid-shake'), 500);
+                    return; // Cancela o drop
+                }
+            }
 
-            if (creditosAtuais + creditosSomar > MAX_CRED_PERIODO) {
-                alert(`Limite de ${MAX_CRED_PERIODO} créditos excedido (incluindo correquisitos).`);
+            // 3. Validação de Créditos
+            const atuais = obterCreditosDaColuna(alvo);
+            let somar = isNovo ? materia.creditos : 0;
+            extras.forEach(x => somar += x.materia.creditos);
+            
+            if (atuais + somar > MAX_CRED_PERIODO) {
+                alert(`Limite de ${MAX_CRED_PERIODO} créditos excedido.`);
                 return;
             }
 
-            // 4. Validação de Regras (Ignorando erro de Correq pois vamos adicionar agora)
-            const validacao = validarRegrasDeNegocio(materia, idColunaAlvo);
-            if (!validacao.ok && validacao.motivo !== 'correq') {
-                alert(validacao.msg);
-                alvo.closest('.board-column').classList.add('drag-invalid-shake');
-                setTimeout(() => alvo.closest('.board-column').classList.remove('drag-invalid-shake'), 500);
+            // 4. Validação de Regras (Principal)
+            const valid = validarRegrasDeNegocio(materia, idCol);
+            if (!valid.ok && valid.motivo !== 'correq') {
+                alert(valid.msg);
                 return;
             }
 
@@ -612,37 +605,26 @@ function adicionarEventosDeArrasto(alvo) {
 
             // A) Adiciona a Matéria Principal
             if (tipoOrigem === 'pool') {
-                const tipo = itemArrastado.classList.contains('pool-item-optativa') ? 'optativa' : 'obrigatoria';
+                const tipo = draggedItem.classList.contains('pool-item-optativa') ? 'optativa' : 'obrigatoria';
                 alvo.appendChild(criarCardMateria(materia, tipo));
             } else {
-                alvo.appendChild(itemArrastado);
+                alvo.appendChild(draggedItem);
             }
 
             // B) Adiciona os Correquisitos (Auto-Pull)
-            correquisitosExtras.forEach(extra => {
-                if (extra.card) {
-                    // Se já existe no board, move para cá
-                    alvo.appendChild(extra.card);
-                } else {
-                    // Se não existe, cria novo (assume obrigatória pois correquisitos geralmente são)
-                    alvo.appendChild(criarCardMateria(extra.materia, 'obrigatoria'));
-                }
+            extras.forEach(x => {
+                if (x.card) alvo.appendChild(x.card);
+                else alvo.appendChild(criarCardMateria(x.materia, 'obrigatoria'));
             });
 
-            // C) Atualiza Tudo
-            atualizarContadorCreditos();
-            atualizarContadorGlobal();
-            validarBoardEmCascata();
-            processarEstadoDoBackend();
-        }
+            atualizarTudo();
+        } 
         
-        // --- CASO 2: Soltou no POOL (Remover) ---
+        // --- Drop no Pool ---
         else if (alvo.classList.contains('pool-list')) {
             if (tipoOrigem === 'card') {
-                itemArrastado.remove();
-                processarEstadoDoBackend();
-                atualizarContadorCreditos();
-                atualizarContadorGlobal();
+                draggedItem.remove();
+                atualizarTudo();
             }
         }
     });
