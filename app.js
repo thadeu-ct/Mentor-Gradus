@@ -798,7 +798,7 @@ function obterMateriasNaColuna(idColunaAlvo) {
 
 // Valida regras que dependem do TEMPO (Pré-requisitos e Mínimo de Créditos)
 function validarRegrasDeNegocio(materia, idColunaAlvo) {
-    const materia = encontrarMateria(materiaInput.codigo);
+    materia = encontrarMateria(materiaInput.codigo);
     if (!materia) return { ok: true };
     console.log(`🔍 Validando ${materia.codigo}. Pré-reqs atuais:`, JSON.stringify(materia.prereqs));
     const numeroPeriodo = parseInt(idColunaAlvo.replace('p', ''), 10);
