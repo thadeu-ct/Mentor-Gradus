@@ -659,16 +659,26 @@ function inicializarArrastarSoltar() {
             return;
         }
         
-        // Pega o código da matéria
-        const codigo = alvo.dataset.codigoOriginal || alvo.id.split('-')[2];
+        // CORREÇÃO AQUI: 
+        // 1. Tenta pegar codigoOriginal (do Pool)
+        // 2. Tenta pegar codigo (do Card do Board)
+        // 3. Se falhar, tenta pegar do ID na posição certa [1]
+        const codigo = alvo.dataset.codigoOriginal || alvo.dataset.codigo || alvo.id.split('-')[1];
         
-        // Define os dados que viajam com o arrasto
-        evento.dataTransfer.setData('materia-codigo-original', codigo);
-        evento.dataTransfer.setData('source-type', alvo.classList.contains('materia-card') ? 'card' : 'pool');
-        
-        // Adiciona classe visual
-        alvo.dataset.codigoOriginal = codigo;
-        setTimeout(() => alvo.classList.add('dragging'), 0);
+        if (codigo) {
+            evento.dataTransfer.setData('materia-codigo-original', codigo);
+            // Identifica de onde veio (card ou pool)
+            const tipo = alvo.classList.contains('materia-card') ? 'card' : 'pool';
+            evento.dataTransfer.setData('source-type', tipo);
+            
+            // Para garantir consistência
+            alvo.dataset.codigoOriginal = codigo;
+            
+            setTimeout(() => alvo.classList.add('dragging'), 0);
+        } else {
+            console.error("Não foi possível identificar o código da matéria ao arrastar.", alvo);
+            evento.preventDefault();
+        }
     });
 
     document.addEventListener('dragend', () => {
@@ -689,8 +699,12 @@ function criarCardMateria(materia, tipo = 'obrigatoria') {
 
     const card = document.createElement('div');
     card.className = 'materia-card';
+    
+    // Dados essenciais para o sistema
     card.dataset.codigo = materia.codigo;
+    card.dataset.codigoOriginal = materia.codigo; // Adicionado para facilitar o dragstart
     card.id = 'card-' + materia.codigo;
+    
     card.draggable = true;
 
     // Define cores (Azul = Obrigatória, Laranja = Optativa)
