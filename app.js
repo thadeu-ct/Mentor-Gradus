@@ -164,19 +164,26 @@ function adicionarMateriaAoCache(materia) {
 function recalcularFilasABC() {
     if (!window.estadoBackend) return;
 
-    // --- Passo 0: Preparar o Universo (CLONAGEM) ---
-    // Criamos cópias dos objetos para podermos modificar os pré-requisitos (substituir grupo por matéria)
-    // sem estragar os dados originais.
+    // --- Passo 0: Preparar o Universo (CLONAGEM E ETIQUETAGEM) ---
     const mapaUniverso = new Map();
-    [...window.estadoBackend.obrigatorias, ...window.estadoBackend.optativas_escolhidas].forEach(m => {
-        // CLONE PROFUNDO para garantir que arrays de arrays (prereqs) sejam copiados e não referenciados
+    
+    // 1. Processa Obrigatórias
+    window.estadoBackend.obrigatorias.forEach(m => {
         const clone = JSON.parse(JSON.stringify(m));
+        clone.tipoReal = 'obrigatoria'; // <--- Etiqueta Nova
         mapaUniverso.set(clone.codigo, clone);
     });
 
-    let listaA = []; // A: Disponíveis / No Board
-    let listaB = []; // B: Travadas por GRUPO de Optativa
-    let listaC = []; // C: Travadas por MATÉRIA Específica
+    // 2. Processa Optativas Escolhidas
+    window.estadoBackend.optativas_escolhidas.forEach(m => {
+        const clone = JSON.parse(JSON.stringify(m));
+        clone.tipoReal = 'optativa'; // <--- Etiqueta Nova
+        mapaUniverso.set(clone.codigo, clone);
+    });
+
+    let listaA = []; // Disponíveis
+    let listaB = []; // Travadas por Grupo
+    let listaC = []; // Travadas por Matéria
 
     // --- Passo 1: Distribuição Inicial ---
     mapaUniverso.forEach(materia => {
@@ -198,33 +205,24 @@ function recalcularFilasABC() {
 
     // --- Passo 2: O Loop de Resolução ---
     let houveMudanca = true;
-    
-    // Matérias que contam como "Feitas/Disponíveis" para desbloquear outras
-    // Pega os códigos do Board e os da Lista A atual
     let setDesbloqueados = new Set([...pegarMateriasNoBoard(), ...listaA.map(m => m.codigo)]);
 
     while (houveMudanca) {
         houveMudanca = false;
 
-        // 2.1 Processar Lista B (Travadas por Grupo)
+        // Lista B (Grupos) -> Substitui e move para C
         for (let i = listaB.length - 1; i >= 0; i--) {
             const mat = listaB[i];
-            
-            // Verifica e SUBSTITUI
-            // Se o grupo foi atendido, a função retorna qual matéria atendeu para fazermos a troca
             if (tentaSubstituirGrupoPorMateria(mat, setDesbloqueados)) {
                 listaB.splice(i, 1); 
-                listaC.push(mat);    // Move para C (agora com o código da matéria real no lugar do grupo)
+                listaC.push(mat);
                 houveMudanca = true; 
             }
         }
 
-        // 2.2 Processar Lista C (Travadas por Matéria)
+        // Lista C (Matérias) -> Move para A
         for (let i = listaC.length - 1; i >= 0; i--) {
             const mat = listaC[i];
-
-            // Como a substituição já ocorreu na etapa B->C, aqui 'prerequisitosForamAtendidos' 
-            // vai checar a matéria real (ex: INF1037) em vez do grupo (INF0307).
             const preReqOk = prerequisitosForamAtendidos(mat, setDesbloqueados);
             const coReqOk = correquisitosForamAtendidos(mat, setDesbloqueados);
 
@@ -237,29 +235,27 @@ function recalcularFilasABC() {
         }
     }
 
-    // --- Passo 3: Limpeza da Lista B (O Caso "Ética Cristã") ---
-    // Se sobrou gente na lista B, significa que a optativa exigida AINDA não foi escolhida.
-    // O usuário pediu: "se mesmo tentando... não conseguir, ela sai mesmo assim".
-    // Então movemos o resto da B para a A para aparecer no Pool (mas travada pelo validador).
+    // --- Passo 3: Limpeza da Lista B ---
     if (listaB.length > 0) {
         console.log("⚠️ Liberando Lista B forçadamente:", listaB.map(m => m.nome));
         listaA.push(...listaB);
         listaB = [];
     }
 
-    // --- Passo 4: Finalização ---
-    listaA.sort((a, b) => a.codigo.localeCompare(b.codigo));
+    // --- Passo 4: Ordenação Personalizada ---
+    // 1º Critério: Tipo (Obrigatória antes de Optativa)
+    // 2º Critério: Código (Alfabético)
+    listaA.sort((a, b) => {
+        if (a.tipoReal !== b.tipoReal) {
+            return a.tipoReal === 'obrigatoria' ? -1 : 1; 
+        }
+        return a.codigo.localeCompare(b.codigo);
+    });
 
-    // ATENÇÃO: Salvamos a Lista A na variavel GLOBAL de processadas
-    // Agora o Drag&Drop deve olhar para CÁ, pois aqui os prereqs foram "traduzidos".
+    // Salva a lista processada para uso no Drag & Drop
     window.materiasProcessadas = listaA; 
-    // (Também precisamos manter as do board no processadas para validação funcionar)
-    // Mas simplificando: `window.materiasProcessadas` será nossa fonte da verdade para o Pool.
-    // Para busca geral (find), continuaremos usando dadosMaterias original ou um mix.
-    // Vamos atualizar o cache global de busca para preferir a versão processada se existir.
     
     console.log(`📊 Filas: A=${listaA.length} (Exibidas)`);
-    
     renderizarPoolListaA(listaA);
     atualizarContadorCreditos();
 }
@@ -403,18 +399,19 @@ function renderizarPoolListaA(listaA) {
     const containerPool = document.getElementById("pool-list-container");
     if (!containerPool) return;
 
-    // Limpa TUDO para redesenhar na ordem correta (Matérias -> Grupos)
     containerPool.innerHTML = '';
 
-    // --- PARTE 1: Renderiza Matérias Disponíveis (Lista A) ---
-    // Elas já vêm ordenadas alfanumericamente do 'recalcularFilasABC'
+    // 1. Renderiza Matérias da Lista A (Já ordenadas: Obrigatórias -> Optativas)
     listaA.forEach(materia => {
-        // Se já está no board, pula
         if (document.getElementById('card-' + materia.codigo)) return;
 
         const item = document.createElement('div');
         item.className = 'pool-item';
-        item.classList.add('pool-item-obrigatoria'); // Estilo padrão azul
+        
+        // Define classe visual baseada no tipo real (definido no backend/processamento)
+        const classeTipo = (materia.tipoReal === 'optativa') ? 'pool-item-optativa' : 'pool-item-obrigatoria';
+        item.classList.add(classeTipo); 
+        
         item.draggable = true;
         item.id = 'pool-item-' + materia.codigo;
         
@@ -439,15 +436,13 @@ function renderizarPoolListaA(listaA) {
         containerPool.appendChild(item);
     });
 
-    // --- PARTE 2: Renderiza Grupos Pendentes (No final da lista) ---
+    // 2. Renderiza Grupos Pendentes (Sempre no final)
     if (window.estadoBackend && window.estadoBackend.grupos_pendentes) {
         window.estadoBackend.grupos_pendentes.forEach(grupo => {
             const item = document.createElement('div');
             item.className = 'pool-item-grupo';
-            // ID único e limpo
             item.id = 'grupo-' + grupo.codigo_grupo.replace(/[^a-zA-Z0-9]/g, '');
             
-            // Dados para filtro
             item.dataset.codigo = normalizarTexto(grupo.codigo_grupo);
             item.dataset.nome = normalizarTexto(grupo.fonte || "Optativa"); 
 
@@ -505,7 +500,7 @@ function adicionarEventosDeArrasto(alvo) {
         // Validação Visual (Feedback Verde/Vermelho)
         if (alvo.classList.contains('column-content')) {
             const codOriginal = itemArrastado.dataset.codigoOriginal;
-            const materia = window.dadosMaterias.find(m => m.codigo === codOriginal);
+            const materia = encontrarMateria(codOriginal);
             const idColunaAlvo = alvo.dataset.columnId;
             
             // Aqui usamos a validação rígida. Se faltar correquisito (e ele não estiver lá), fica vermelho.
@@ -542,7 +537,7 @@ function adicionarEventosDeArrasto(alvo) {
 
         // --- CASO 1: Soltou no BOARD ---
         if (alvo.classList.contains('column-content')) {
-            const materia = window.dadosMaterias.find(m => m.codigo === codOriginal);
+            const materia = encontrarMateria(codOriginal);
             const idColunaAlvo = alvo.dataset.columnId;
             const isNovo = (itemArrastado.closest('.column-content')?.dataset.columnId !== idColunaAlvo);
 
@@ -753,7 +748,7 @@ function obterCreditosDaColuna(colunaElemento) {
     let total = 0;
     colunaElemento.querySelectorAll('.materia-card').forEach(card => {
         // Busca os dados oficiais no cache para garantir precisão
-        const materia = window.dadosMaterias.find(m => m.codigo === card.dataset.codigo);
+        const materia = encontrarMateria(card.dataset.codigo);
         if (materia) total += materia.creditos;
     });
     return total;
@@ -867,7 +862,7 @@ function validarBoardEmCascata() {
             const cards = coluna.querySelectorAll('.materia-card');
 
             cards.forEach(card => {
-                const materia = window.dadosMaterias.find(m => m.codigo === card.dataset.codigo);
+                const materia = encontrarMateria(card.dataset.codigo);
                 const validacao = validarRegrasDeNegocio(materia, idColuna);
 
                 if (!validacao.ok) {
@@ -1252,6 +1247,16 @@ function requisitoEstaSatisfeito(codigoRequisito, setMaterias) {
     }
 
     return false;
+}
+
+// Helper Inteligente: Busca a matéria processada (com requisitos atualizados) se existir
+function encontrarMateria(codigo) {
+    // 1. Tenta achar na lista processada (Prioridade: aqui estão os clones modificados)
+    let mat = window.materiasProcessadas.find(m => m.codigo === codigo);
+    if (mat) return mat;
+
+    // 2. Se não achar (ex: já está no board há muito tempo), tenta achar no cache original
+    return window.dadosMaterias.find(m => m.codigo === codigo);
 }
 
 // Fechando dropdowns ao clicar fora
