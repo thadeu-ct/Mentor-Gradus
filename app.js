@@ -741,12 +741,25 @@ function pegarMateriasNoBoard() {
 }
 
 // Calcula quantos créditos existem em uma coluna específica
+// Calcula quantos créditos existem em uma coluna específica
 function obterCreditosDaColuna(colunaElemento) {
     let total = 0;
     colunaElemento.querySelectorAll('.materia-card').forEach(card => {
-        // Busca os dados oficiais no cache para garantir precisão
+        // 1. Tenta buscar os dados oficiais no cache (Mais preciso)
         const materia = encontrarMateria(card.dataset.codigo);
-        if (materia) total += materia.creditos;
+        
+        if (materia && materia.creditos) {
+            total += materia.creditos;
+        } else {
+            // 2. PLANO B (Fallback): Se não achar no cache, lê o texto do card
+            // Procura o chip que tem a classe 'creditos' (ex: "4 Créditos")
+            const chip = card.querySelector('.card-chip.creditos');
+            if (chip) {
+                // Pega apenas os números do texto (ex: "4")
+                const valor = parseInt(chip.textContent.replace(/\D/g, '')) || 0;
+                total += valor;
+            }
+        }
     });
     return total;
 }
