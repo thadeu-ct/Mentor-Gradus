@@ -89,7 +89,7 @@ def api_get_opcoes_grupo():
     return jsonify(opcoes_validas)
 
 # --- Endpoint 3: Enviar dados de Formações ---
-@app.route("/api/get-formacoes", methods=['GET'])
+@app.route("/api/get-dados-formacoes", methods=['GET'])
 def api_get_formacoes():
     """
     Envia a lista completa de formações e suas ênfases.
@@ -100,7 +100,7 @@ def api_get_formacoes():
     return jsonify(dados_form)
 
 # --- Endpoint 4: Enviar dados de Domínios ---
-@app.route("/api/get-dominios", methods=['GET'])
+@app.route("/api/get-dados-dominios", methods=['GET'])
 def api_get_dominios():
     return jsonify(dados_dom)
 
