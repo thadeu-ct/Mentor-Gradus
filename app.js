@@ -170,20 +170,20 @@ function recalcularFilasABC() {
     // 1. Processa Obrigatórias
     window.estadoBackend.obrigatorias.forEach(m => {
         const clone = JSON.parse(JSON.stringify(m));
-        clone.tipoReal = 'obrigatoria'; // <--- Etiqueta Nova
+        clone.tipoReal = 'obrigatoria';
         mapaUniverso.set(clone.codigo, clone);
     });
 
     // 2. Processa Optativas Escolhidas
     window.estadoBackend.optativas_escolhidas.forEach(m => {
         const clone = JSON.parse(JSON.stringify(m));
-        clone.tipoReal = 'optativa'; // <--- Etiqueta Nova
+        clone.tipoReal = 'optativa'; 
         mapaUniverso.set(clone.codigo, clone);
     });
 
-    let listaA = []; // Disponíveis
-    let listaB = []; // Travadas por Grupo
-    let listaC = []; // Travadas por Matéria
+    let listaA = []; 
+    let listaB = []; 
+    let listaC = []; 
 
     // --- Passo 1: Distribuição Inicial ---
     mapaUniverso.forEach(materia => {
@@ -210,7 +210,7 @@ function recalcularFilasABC() {
     while (houveMudanca) {
         houveMudanca = false;
 
-        // Lista B (Grupos) -> Substitui e move para C
+        // 2.1 Processar Lista B (Travadas por GRUPO nos PRÉ-REQUISITOS)
         for (let i = listaB.length - 1; i >= 0; i--) {
             const mat = listaB[i];
             if (tentaSubstituirGrupoPorMateria(mat, setDesbloqueados)) {
@@ -220,9 +220,14 @@ function recalcularFilasABC() {
             }
         }
 
-        // Lista C (Matérias) -> Move para A
+        // 2.2 Processar Lista C (Travadas por Matéria Comum OU Correquisito de Grupo)
         for (let i = listaC.length - 1; i >= 0; i--) {
             const mat = listaC[i];
+
+            // --- CORREÇÃO AQUI: Força a tentativa de substituição na Lista C também ---
+            // Isso garante que se o grupo estiver no Correquisito (caso do ENG4021), ele também seja trocado.
+            tentaSubstituirGrupoPorMateria(mat, setDesbloqueados); 
+
             const preReqOk = prerequisitosForamAtendidos(mat, setDesbloqueados);
             const coReqOk = correquisitosForamAtendidos(mat, setDesbloqueados);
 
@@ -242,9 +247,7 @@ function recalcularFilasABC() {
         listaB = [];
     }
 
-    // --- Passo 4: Ordenação Personalizada ---
-    // 1º Critério: Tipo (Obrigatória antes de Optativa)
-    // 2º Critério: Código (Alfabético)
+    // --- Passo 4: Ordenação Final ---
     listaA.sort((a, b) => {
         if (a.tipoReal !== b.tipoReal) {
             return a.tipoReal === 'obrigatoria' ? -1 : 1; 
@@ -252,7 +255,6 @@ function recalcularFilasABC() {
         return a.codigo.localeCompare(b.codigo);
     });
 
-    // Salva a lista processada para uso no Drag & Drop
     window.materiasProcessadas = listaA; 
     
     console.log(`📊 Filas: A=${listaA.length} (Exibidas)`);
