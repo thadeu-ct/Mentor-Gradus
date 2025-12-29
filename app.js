@@ -277,8 +277,7 @@ function tentaSubstituirGrupoPorMateria(materia, setDesbloqueados) {
                     const opcaoEscolhida = opcoes.find(op => setDesbloqueados.has(op));
                     
                     if (opcaoEscolhida) {
-                        // SUBSTITUI O CÓDIGO DO GRUPO PELO CÓDIGO DA MATÉRIA!
-                        // Ex: ["INF0307"] vira ["INF1037"]
+                        console.log(`♻️ SUBSTITUIÇÃO: Em ${materia.codigo}, trocando grupo ${cod} por ${opcaoEscolhida}`);
                         grupo[i] = opcaoEscolhida; 
                         houveSubstituicao = true;
                     }
@@ -799,8 +798,9 @@ function obterMateriasNaColuna(idColunaAlvo) {
 
 // Valida regras que dependem do TEMPO (Pré-requisitos e Mínimo de Créditos)
 function validarRegrasDeNegocio(materia, idColunaAlvo) {
+    const materia = encontrarMateria(materiaInput.codigo);
     if (!materia) return { ok: true };
-
+    console.log(`🔍 Validando ${materia.codigo}. Pré-reqs atuais:`, JSON.stringify(materia.prereqs));
     const numeroPeriodo = parseInt(idColunaAlvo.replace('p', ''), 10);
     const cursadasAnteriores = obterMateriasCursadasAte(idColunaAlvo);
     const creditosAcumulados = obterCreditosAcumuladosAte(numeroPeriodo);
