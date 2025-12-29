@@ -740,24 +740,26 @@ function pegarMateriasNoBoard() {
     return Array.from(cards).map(card => card.dataset.codigo); 
 }
 
-// Calcula quantos créditos existem em uma coluna específica
-// Calcula quantos créditos existem em uma coluna específica
 function obterCreditosDaColuna(colunaElemento) {
     let total = 0;
-    colunaElemento.querySelectorAll('.materia-card').forEach(card => {
-        // 1. Tenta buscar os dados oficiais no cache (Mais preciso)
-        const materia = encontrarMateria(card.dataset.codigo);
+    const cards = colunaElemento.querySelectorAll('.materia-card');
+    
+    cards.forEach(card => {
+        const codigo = card.dataset.codigo;
+        // 1. Tenta achar o objeto completo (cache processado ou original)
+        const materia = encontrarMateria(codigo);
         
-        if (materia && materia.creditos) {
+        if (materia && typeof materia.creditos === 'number') {
             total += materia.creditos;
         } else {
-            // 2. PLANO B (Fallback): Se não achar no cache, lê o texto do card
-            // Procura o chip que tem a classe 'creditos' (ex: "4 Créditos")
+            // 2. Fallback: Lê do HTML se o banco falhar
             const chip = card.querySelector('.card-chip.creditos');
             if (chip) {
-                // Pega apenas os números do texto (ex: "4")
-                const valor = parseInt(chip.textContent.replace(/\D/g, '')) || 0;
-                total += valor;
+                const valorTexto = parseInt(chip.textContent.replace(/\D/g, '')) || 0;
+                total += valorTexto;
+                // console.warn(`⚠️ Usando fallback visual para ${codigo}: ${valorTexto} créditos`);
+            } else {
+                console.error(`❌ Erro: Não foi possível ler créditos de ${codigo}`);
             }
         }
     });
@@ -908,35 +910,41 @@ function atualizarContadorCreditos() {
 
 function atualizarContadorGlobal() {
     const elemento = document.getElementById('global-credit-counter');
+    // Se não tiver dados ainda, não faz nada (mantém o que está ou "0 / 0")
     if (!elemento || !window.estadoBackend) return;
     
-    // 1. Planejado: Soma tudo que está no board visualmente
+    // 1. Planejado: Soma tudo que está visualmente no board
     let totalPlanejado = 0;
     pegarMateriasNoBoard().forEach(cod => {
-        const mat = window.dadosMaterias.find(m => m.codigo === cod);
+        const mat = encontrarMateria(cod);
         if (mat) totalPlanejado += mat.creditos;
     });
 
-    // 2. Exigido: Soma tudo que o Python mandou
+    // 2. Exigido: Soma tudo que o Python mandou (Obrigatórias + Optativas + Pendentes)
     let totalExigido = 0;
-    if (window.estadoBackend.obrigatorias) {
-        window.estadoBackend.obrigatorias.forEach(m => totalExigido += m.creditos);
+    const backend = window.estadoBackend;
+    
+    if (backend.obrigatorias) {
+        backend.obrigatorias.forEach(m => totalExigido += (m.creditos || 0));
     }
-    if (window.estadoBackend.optativas_escolhidas) {
-        window.estadoBackend.optativas_escolhidas.forEach(m => totalExigido += m.creditos);
+    if (backend.optativas_escolhidas) {
+        backend.optativas_escolhidas.forEach(m => totalExigido += (m.creditos || 0));
     }
-    if (window.estadoBackend.grupos_pendentes) {
-        window.estadoBackend.grupos_pendentes.forEach(g => totalExigido += g.faltando);
+    if (backend.grupos_pendentes) {
+        backend.grupos_pendentes.forEach(g => totalExigido += (g.faltando || 0));
     }
 
+    // Atualiza a tela
     elemento.innerText = `${totalPlanejado} / ${totalExigido}`;
     
-    // Fica verde se completou
+    // Pinta de verde se concluiu
     if (totalExigido > 0 && totalPlanejado >= totalExigido) {
         elemento.classList.add('completed');
     } else {
         elemento.classList.remove('completed');
     }
+    
+    console.log(`📊 Contador Global Atualizado: ${totalPlanejado} / ${totalExigido}`);
 }
 
 // --- 4.4 Funcionalidades Visuais (Sidebar, Modal, Chips) ---
@@ -1261,11 +1269,14 @@ function requisitoEstaSatisfeito(codigoRequisito, setMaterias) {
 
 // Helper Inteligente: Busca a matéria processada (com requisitos atualizados) se existir
 function encontrarMateria(codigo) {
-    // 1. Tenta achar na lista processada (Prioridade: aqui estão os clones modificados)
+    if (!codigo) return null;
+    
+    // 1. Prioridade: Lista Processada (Clone com requisitos alterados)
     let mat = window.materiasProcessadas.find(m => m.codigo === codigo);
     if (mat) return mat;
 
-    // 2. Se não achar (ex: já está no board há muito tempo), tenta achar no cache original
+    // 2. Fallback: Lista Original (Dados brutos do JSON)
+    // Isso garante que se o item ainda não foi processado (ex: acabou de carregar), ele é achado.
     return window.dadosMaterias.find(m => m.codigo === codigo);
 }
 
