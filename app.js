@@ -4,6 +4,7 @@
 
 // --- Estado Global (Variáveis que guardam os dados do sistema) ---
 window.dadosMaterias = [];       // Lista simples com todas as matérias (antigo materiasData)
+window.materiasProcessadas = []; // Dados PROCESSADO (Com substituições feitas pela lógica A/B/C)
 window.dadosOptativas = {};      // Definições de grupos de optativas
 window.dadosFormacoes = {};      // Definições dos cursos (Eng. Computação, etc.)
 window.dadosDominios = {};       // Definições dos domínios adicionais
@@ -163,83 +164,156 @@ function adicionarMateriaAoCache(materia) {
 function recalcularFilasABC() {
     if (!window.estadoBackend) return;
 
-    // Junta todas as matérias que o Python disse que são necessárias (Obrigatórias + Optativas já escolhidas)
+    // --- Passo 0: Preparar o Universo (CLONAGEM) ---
+    // Criamos cópias dos objetos para podermos modificar os pré-requisitos (substituir grupo por matéria)
+    // sem estragar os dados originais.
     const mapaUniverso = new Map();
     [...window.estadoBackend.obrigatorias, ...window.estadoBackend.optativas_escolhidas].forEach(m => {
-        mapaUniverso.set(m.codigo, m);
+        // CLONE PROFUNDO para garantir que arrays de arrays (prereqs) sejam copiados e não referenciados
+        const clone = JSON.parse(JSON.stringify(m));
+        mapaUniverso.set(clone.codigo, clone);
     });
 
-    let listaA = []; // A: Disponíveis / Visíveis (Sem travas)
-    let listaB = []; // B: Travadas por GRUPO de Optativa (Ex: precisa de 'CRE0712')
-    let listaC = []; // C: Travadas por MATÉRIA Específica (Pré-req comum)
+    let listaA = []; // A: Disponíveis / No Board
+    let listaB = []; // B: Travadas por GRUPO de Optativa
+    let listaC = []; // C: Travadas por MATÉRIA Específica
 
+    // --- Passo 1: Distribuição Inicial ---
     mapaUniverso.forEach(materia => {
         const temPreReq = materia.prereqs && materia.prereqs.length > 0 && materia.prereqs[0].length > 0;
         const temCoReq = materia.correq && materia.correq.length > 0 && materia.correq[0].length > 0;
 
         if (!temPreReq && !temCoReq) {
-            // materias independentes e sem pre requisitos
             listaA.push(materia);
         } else if (!temPreReq && temCoReq) {
-            // Só tem correquisito -> Vai para Lista C inicialmente
             listaC.push(materia);
-        } else { // tem pre requisito
+        } else {
             if (dependeDeGrupoOptativo(materia)) {
-                listaB.push(materia); // pre requisito é optativas
+                listaB.push(materia);
             } else {
-                listaC.push(materia); // pre requisito é obrigatórias
+                listaC.push(materia);
             }
         }
     });
 
+    // --- Passo 2: O Loop de Resolução ---
     let houveMudanca = true;
     
-    // Junta a lista A (materias disponiveis) com as matérias contidas no board
-    let conjuntoDesbloqueados = new Set([...listaA.map(m => m.codigo), ...pegarMateriasNoBoard()]);
+    // Matérias que contam como "Feitas/Disponíveis" para desbloquear outras
+    // Pega os códigos do Board e os da Lista A atual
+    let setDesbloqueados = new Set([...pegarMateriasNoBoard(), ...listaA.map(m => m.codigo)]);
 
     while (houveMudanca) {
         houveMudanca = false;
 
-        // Se a matéria tá liberada, move para lista C
+        // 2.1 Processar Lista B (Travadas por Grupo)
         for (let i = listaB.length - 1; i >= 0; i--) {
             const mat = listaB[i];
             
-            if (gruposForamAtendidos(mat, conjuntoDesbloqueados)) {
-                listaB.splice(i, 1); // Tira da B
-                listaC.push(mat);    // Joga na C (entra na fila de matérias passiveis a serem escolhidas)
+            // Verifica e SUBSTITUI
+            // Se o grupo foi atendido, a função retorna qual matéria atendeu para fazermos a troca
+            if (tentaSubstituirGrupoPorMateria(mat, setDesbloqueados)) {
+                listaB.splice(i, 1); 
+                listaC.push(mat);    // Move para C (agora com o código da matéria real no lugar do grupo)
                 houveMudanca = true; 
             }
         }
 
-        // Processar Lista C (Travadas por Matéria/Correquisito)
+        // 2.2 Processar Lista C (Travadas por Matéria)
         for (let i = listaC.length - 1; i >= 0; i--) {
             const mat = listaC[i];
 
-            const preReqOk = prerequisitosForamAtendidos(mat, conjuntoDesbloqueados);
-            const coReqOk = correquisitosForamAtendidos(mat, conjuntoDesbloqueados);
+            // Como a substituição já ocorreu na etapa B->C, aqui 'prerequisitosForamAtendidos' 
+            // vai checar a matéria real (ex: INF1037) em vez do grupo (INF0307).
+            const preReqOk = prerequisitosForamAtendidos(mat, setDesbloqueados);
+            const coReqOk = correquisitosForamAtendidos(mat, setDesbloqueados);
 
             if (preReqOk && coReqOk) {
-                listaC.splice(i, 1); // Tira da C
-                listaA.push(mat);    // Joga na A (Pool)
-                conjuntoDesbloqueados.add(mat.codigo); // Agora essa matéria ajuda a desbloquear outras
+                listaC.splice(i, 1);
+                listaA.push(mat);
+                setDesbloqueados.add(mat.codigo);
                 houveMudanca = true;
             }
         }
     }
 
-    // Ordena a Lista A alfanumericamente (ex: ARQ... depois CTC... depois ENG...)
+    // --- Passo 3: Limpeza da Lista B (O Caso "Ética Cristã") ---
+    // Se sobrou gente na lista B, significa que a optativa exigida AINDA não foi escolhida.
+    // O usuário pediu: "se mesmo tentando... não conseguir, ela sai mesmo assim".
+    // Então movemos o resto da B para a A para aparecer no Pool (mas travada pelo validador).
+    if (listaB.length > 0) {
+        console.log("⚠️ Liberando Lista B forçadamente:", listaB.map(m => m.nome));
+        listaA.push(...listaB);
+        listaB = [];
+    }
+
+    // --- Passo 4: Finalização ---
     listaA.sort((a, b) => a.codigo.localeCompare(b.codigo));
 
-    console.log(`📊 Filas Calculadas: A=${listaA.length}, B=${listaB.length}, C=${listaC.length}`);
+    // ATENÇÃO: Salvamos a Lista A na variavel GLOBAL de processadas
+    // Agora o Drag&Drop deve olhar para CÁ, pois aqui os prereqs foram "traduzidos".
+    window.materiasProcessadas = listaA; 
+    // (Também precisamos manter as do board no processadas para validação funcionar)
+    // Mas simplificando: `window.materiasProcessadas` será nossa fonte da verdade para o Pool.
+    // Para busca geral (find), continuaremos usando dadosMaterias original ou um mix.
+    // Vamos atualizar o cache global de busca para preferir a versão processada se existir.
     
-    // Atualiza a tela com o resultado da Lista A
+    console.log(`📊 Filas: A=${listaA.length} (Exibidas)`);
+    
     renderizarPoolListaA(listaA);
-    
-    // Atualiza os números do contador global
     atualizarContadorCreditos();
 }
 
 // --- Funções Auxiliares da Lógica ---
+
+function tentaSubstituirGrupoPorMateria(materia, setDesbloqueados) {
+    let houveSubstituicao = false;
+
+    // Varre Pré-requisitos
+    if (materia.prereqs) {
+        materia.prereqs.forEach(grupo => {
+            for (let i = 0; i < grupo.length; i++) {
+                const cod = grupo[i];
+                // Se for código de grupo (tem '0' na pos 3)
+                if (cod.length >= 4 && cod[3] === '0' && window.dadosOptativas[cod]) {
+                    const opcoes = window.dadosOptativas[cod].Opções;
+                    // Procura qual opção está desbloqueada
+                    const opcaoEscolhida = opcoes.find(op => setDesbloqueados.has(op));
+                    
+                    if (opcaoEscolhida) {
+                        // SUBSTITUI O CÓDIGO DO GRUPO PELO CÓDIGO DA MATÉRIA!
+                        // Ex: ["INF0307"] vira ["INF1037"]
+                        grupo[i] = opcaoEscolhida; 
+                        houveSubstituicao = true;
+                    }
+                }
+            }
+        });
+    }
+
+    // Varre Correquisitos (Mesma lógica)
+    if (materia.correq) {
+        materia.correq.forEach(grupo => {
+            for (let i = 0; i < grupo.length; i++) {
+                const cod = grupo[i];
+                if (cod.length >= 4 && cod[3] === '0' && window.dadosOptativas[cod]) {
+                    const opcoes = window.dadosOptativas[cod].Opções;
+                    const opcaoEscolhida = opcoes.find(op => setDesbloqueados.has(op));
+                    if (opcaoEscolhida) {
+                        grupo[i] = opcaoEscolhida;
+                        houveSubstituicao = true;
+                    }
+                }
+            }
+        });
+    }
+
+    // Se houve substituição, significa que o grupo foi atendido.
+    // Mas precisamos garantir que TODOS os grupos da matéria foram atendidos?
+    // A lógica original "dependeDeGrupoOptativo" checava se AINDA existia grupo.
+    // Vamos checar se sobrou algum grupo pendente.
+    return !dependeDeGrupoOptativo(materia);
+}
 
 function dependeDeGrupoOptativo(materia) {
     if (!materia.prereqs) return false;
@@ -324,26 +398,23 @@ function correquisitosForamAtendidos(materia, setDisponiveis) {
 
 // --- 3.1 Renderização da Lista Lateral (Pool) ---
 
-// Desenha as matérias disponíveis (Lista A) na barra lateral
+// Desenha o Pool: 1º Matérias da Lista A, 2º Grupos Pendentes
 function renderizarPoolListaA(listaA) {
     const containerPool = document.getElementById("pool-list-container");
     if (!containerPool) return;
 
-    // Limpa tudo para redesenhar na ordem correta
+    // Limpa TUDO para redesenhar na ordem correta (Matérias -> Grupos)
     containerPool.innerHTML = '';
 
-    // 1. Renderiza MATÉRIAS (Topo da lista)
+    // --- PARTE 1: Renderiza Matérias Disponíveis (Lista A) ---
+    // Elas já vêm ordenadas alfanumericamente do 'recalcularFilasABC'
     listaA.forEach(materia => {
-        // Se a matéria já está no board, não mostra no pool
+        // Se já está no board, pula
         if (document.getElementById('card-' + materia.codigo)) return;
 
         const item = document.createElement('div');
         item.className = 'pool-item';
-        
-        // Define classe visual (Obrigatória ou Optativa Manual)
-        // Se veio da lista de optativas_escolhidas do backend, pintamos diferente?
-        // Por simplificação visual, se está na Lista A, é "matéria concreta".
-        item.classList.add('pool-item-obrigatoria'); 
+        item.classList.add('pool-item-obrigatoria'); // Estilo padrão azul
         item.draggable = true;
         item.id = 'pool-item-' + materia.codigo;
         
@@ -368,15 +439,15 @@ function renderizarPoolListaA(listaA) {
         containerPool.appendChild(item);
     });
 
-    // 2. Renderiza GRUPOS PENDENTES (Fundo da lista)
-    // Buscamos os grupos direto do estado global
+    // --- PARTE 2: Renderiza Grupos Pendentes (No final da lista) ---
     if (window.estadoBackend && window.estadoBackend.grupos_pendentes) {
         window.estadoBackend.grupos_pendentes.forEach(grupo => {
             const item = document.createElement('div');
             item.className = 'pool-item-grupo';
+            // ID único e limpo
             item.id = 'grupo-' + grupo.codigo_grupo.replace(/[^a-zA-Z0-9]/g, '');
             
-            // Dados para filtro de busca
+            // Dados para filtro
             item.dataset.codigo = normalizarTexto(grupo.codigo_grupo);
             item.dataset.nome = normalizarTexto(grupo.fonte || "Optativa"); 
 
@@ -393,38 +464,6 @@ function renderizarPoolListaA(listaA) {
             containerPool.appendChild(item);
         });
     }
-}
-
-// ATENÇÃO: A função 'renderizarGruposPendentes' antiga pode ser APAGADA, 
-// pois agora a lógica está dentro de 'renderizarPoolListaA' para garantir a ordem.
-// Remova ou comente a função 'renderizarGruposPendentes' antiga para não dar conflito.
-
-// Desenha os Grupos de Optativas (Blocos Amarelos) que precisam de escolha
-function renderizarGruposPendentes(grupos) {
-    const containerPool = document.getElementById("pool-list-container");
-    // Nota: Esta função é chamada antes de renderizarPoolListaA no processarEstadoDoBackend
-    // Então aqui podemos limpar tudo para começar do zero
-    containerPool.innerHTML = ''; 
-    
-    grupos.forEach(grupo => {
-        const item = document.createElement('div');
-        item.className = 'pool-item-grupo';
-        // Remove caracteres especiais do ID para evitar erros
-        item.id = 'grupo-' + grupo.codigo_grupo.replace(/[^a-zA-Z0-9]/g, '');
-        
-        item.innerHTML = `
-            <span class="pool-item-title">${grupo.codigo_grupo}</span>
-            <span class="pool-item-chip">${grupo.faltando} Créd.</span>
-        `;
-        
-        // Ao clicar, abre o Modal de seleção
-        item.onclick = function(e) {
-            e.stopPropagation(); 
-            abrirModalSelecao(grupo.codigo_grupo, grupo.faltando);
-        };
-        
-        containerPool.appendChild(item);
-    });
 }
 
 // Mostra/Esconde os detalhes (Pré-requisitos) no Pool
@@ -595,7 +634,7 @@ function adicionarEventosDeArrasto(alvo) {
             });
 
             // C) Atualiza Tudo
-            atualizarContadoresDeCredito();
+            atualizarContadorCreditos();
             atualizarContadorGlobal();
             validarBoardEmCascata();
             processarEstadoDoBackend();
@@ -606,7 +645,7 @@ function adicionarEventosDeArrasto(alvo) {
             if (tipoOrigem === 'card') {
                 itemArrastado.remove();
                 processarEstadoDoBackend();
-                atualizarContadoresDeCredito();
+                atualizarContadorCreditos();
                 atualizarContadorGlobal();
             }
         }
@@ -844,7 +883,7 @@ function validarBoardEmCascata() {
 
 // --- 4.3 Atualização de Interface (Contadores e Textos) ---
 
-function atualizarContadoresDeCredito() {
+function atualizarContadorCreditos() {
     document.querySelectorAll('.board-column').forEach(coluna => {
         const conteudo = coluna.querySelector('.column-content');
         const total = obterCreditosDaColuna(conteudo);
