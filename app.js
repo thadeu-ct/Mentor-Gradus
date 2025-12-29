@@ -740,26 +740,22 @@ function pegarMateriasNoBoard() {
     return Array.from(cards).map(card => card.dataset.codigo); 
 }
 
+// Calcula quantos créditos existem em uma coluna específica
 function obterCreditosDaColuna(colunaElemento) {
     let total = 0;
-    const cards = colunaElemento.querySelectorAll('.materia-card');
-    
-    cards.forEach(card => {
-        const codigo = card.dataset.codigo;
-        // 1. Tenta achar o objeto completo (cache processado ou original)
-        const materia = encontrarMateria(codigo);
+    colunaElemento.querySelectorAll('.materia-card').forEach(card => {
+        // 1. Tenta buscar os dados oficiais no cache (Mais preciso)
+        const materia = encontrarMateria(card.dataset.codigo);
         
         if (materia && typeof materia.creditos === 'number') {
             total += materia.creditos;
         } else {
-            // 2. Fallback: Lê do HTML se o banco falhar
+            // 2. PLANO B (Fallback do código antigo): Lê o texto do card
             const chip = card.querySelector('.card-chip.creditos');
             if (chip) {
+                // Remove tudo que não for número (ex: "4 Créditos" -> "4")
                 const valorTexto = parseInt(chip.textContent.replace(/\D/g, '')) || 0;
                 total += valorTexto;
-                // console.warn(`⚠️ Usando fallback visual para ${codigo}: ${valorTexto} créditos`);
-            } else {
-                console.error(`❌ Erro: Não foi possível ler créditos de ${codigo}`);
             }
         }
     });
@@ -910,17 +906,17 @@ function atualizarContadorCreditos() {
 
 function atualizarContadorGlobal() {
     const elemento = document.getElementById('global-credit-counter');
-    // Se não tiver dados ainda, não faz nada (mantém o que está ou "0 / 0")
     if (!elemento || !window.estadoBackend) return;
     
     // 1. Planejado: Soma tudo que está visualmente no board
     let totalPlanejado = 0;
-    pegarMateriasNoBoard().forEach(cod => {
-        const mat = encontrarMateria(cod);
-        if (mat) totalPlanejado += mat.creditos;
+    
+    // Usa a mesma lógica de soma das colunas para garantir consistência
+    document.querySelectorAll('.board-column .column-content').forEach(coluna => {
+        totalPlanejado += obterCreditosDaColuna(coluna);
     });
 
-    // 2. Exigido: Soma tudo que o Python mandou (Obrigatórias + Optativas + Pendentes)
+    // 2. Exigido: Soma tudo que o Python mandou
     let totalExigido = 0;
     const backend = window.estadoBackend;
     
@@ -934,17 +930,13 @@ function atualizarContadorGlobal() {
         backend.grupos_pendentes.forEach(g => totalExigido += (g.faltando || 0));
     }
 
-    // Atualiza a tela
     elemento.innerText = `${totalPlanejado} / ${totalExigido}`;
     
-    // Pinta de verde se concluiu
     if (totalExigido > 0 && totalPlanejado >= totalExigido) {
         elemento.classList.add('completed');
     } else {
         elemento.classList.remove('completed');
     }
-    
-    console.log(`📊 Contador Global Atualizado: ${totalPlanejado} / ${totalExigido}`);
 }
 
 // --- 4.4 Funcionalidades Visuais (Sidebar, Modal, Chips) ---
