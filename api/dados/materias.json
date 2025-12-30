@@ -1308,8 +1308,8 @@
          "nome": "Estática",
          "creditos": 4,
          "min-cred": 0,
-         "prereqs": [["MAT4162"]],
-         "correq": [[]]
+         "prereqs": [["FIS4001", "MAT4200"]],
+         "correq": [["MAT4162"]]
     },
     { 
         "codigo": "ENG4701",
