@@ -260,6 +260,7 @@ function recalcularFilasABC() {
     console.log(`📊 Filas: A=${listaA.length} (Exibidas)`);
     renderizarPoolListaA(listaA);
     atualizarContadorCreditos();
+    atualizarContadorGlobal();
 }
 
 // --- Funções Auxiliares da Lógica ---
@@ -906,36 +907,42 @@ function atualizarContadorCreditos() {
 
 function atualizarContadorGlobal() {
     const elemento = document.getElementById('global-credit-counter');
-    if (!elemento || !window.estadoBackend) return;
+    // Se não tiver elemento ou dados do backend, mostra 0/0 mas não quebra
+    if (!elemento) return;
     
     // 1. Planejado: Soma tudo que está visualmente no board
     let totalPlanejado = 0;
-    
-    // Usa a mesma lógica de soma das colunas para garantir consistência
     document.querySelectorAll('.board-column .column-content').forEach(coluna => {
         totalPlanejado += obterCreditosDaColuna(coluna);
     });
 
-    // 2. Exigido: Soma tudo que o Python mandou
+    // 2. Exigido: Soma tudo que o Python mandou (com proteção contra null/undefined)
     let totalExigido = 0;
-    const backend = window.estadoBackend;
-    
-    if (backend.obrigatorias) {
-        backend.obrigatorias.forEach(m => totalExigido += (m.creditos || 0));
-    }
-    if (backend.optativas_escolhidas) {
-        backend.optativas_escolhidas.forEach(m => totalExigido += (m.creditos || 0));
-    }
-    if (backend.grupos_pendentes) {
-        backend.grupos_pendentes.forEach(g => totalExigido += (g.faltando || 0));
+    if (window.estadoBackend) {
+        const backend = window.estadoBackend;
+        if (backend.obrigatorias) {
+            backend.obrigatorias.forEach(m => totalExigido += (m.creditos || 0));
+        }
+        if (backend.optativas_escolhidas) {
+            backend.optativas_escolhidas.forEach(m => totalExigido += (m.creditos || 0));
+        }
+        if (backend.grupos_pendentes) {
+            backend.grupos_pendentes.forEach(g => totalExigido += (g.faltando || 0));
+        }
     }
 
+    // 3. Atualiza a UI
     elemento.innerText = `${totalPlanejado} / ${totalExigido}`;
     
+    // Feedback visual de conclusão
     if (totalExigido > 0 && totalPlanejado >= totalExigido) {
         elemento.classList.add('completed');
+        elemento.style.backgroundColor = '#27ae60'; // Força a cor verde
+        elemento.style.color = 'white';
     } else {
         elemento.classList.remove('completed');
+        elemento.style.backgroundColor = '#e0e0e0'; // Volta pro cinza
+        elemento.style.color = '#333';
     }
 }
 
@@ -1113,6 +1120,14 @@ function atualizarEnfasesDisponiveis() {
     sectionEnfase.style.display = 'none';
     const area = document.getElementById('enfase-selection');
     if(area) area.innerHTML = ''; // Limpa seleção anterior
+}
+
+// Função centralizadora para atualizar a UI após mudanças manuais (Drag & Drop)
+function atualizarTudo() {
+    atualizarContadorCreditos(); // Atualiza os contadores das colunas (Períodos)
+    atualizarContadorGlobal();   // Atualiza o contador do Header (Planejado / Total)
+    validarBoardEmCascata();     // Verifica se alguma regra foi quebrada
+    processarEstadoDoBackend();  // Envia o novo estado para o Python e recalcula as filas A/B/C
 }
 
 // --- Controles do Board (Colunas) ---
