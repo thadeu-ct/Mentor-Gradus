@@ -143,7 +143,7 @@
       ["JUR0205", 2]
     ],
     "eletivas": [
-      ["ELU0900", 7]
+      ["ELL0900", 7]
     ],
     "enfase": {}
   },
@@ -161,77 +161,77 @@
       "ENG4007",
       "ENG4010",
       "ENG4011",
+      "ENG4015",
+      "ENG4018",
+      "ENG4020",
       "ENG4021",
       "ENG4025",
       "ENG4030",
-      "ENG4033",
-      "ENG4040",
-      "ENG4051",
-      "ENG4061",
-      "ENG4142",
-      "ENG4143",
-      "ENG4155",
-      "ENG4405",
-      "ENG4407",
-      "ENG4411",
-      "ENG4412",
-      "ENG4415",
-      "ENG4418",
-      "ENG4419",
-      "ENG4420",
-      "ENG4421",
-      "ENG4422",
-      "ENG4424",
-      "ENG4444",
-      "ENG4446",
-      "ENG4448",
-      "ENG4451",
-      "ENG4471",
+      "ENG4140",
+      "ENG4141",
+      "ENG4160",
       "ENG4500",
       "ENG4501",
       "ENG4502",
+      "ENG4503",
+      "ENG4504",
+      "ENG4505",
+      "ENG4506",
+      "ENG4507",
+      "ENG4508",
+      "ENG4509",
+      "ENG4510",
+      "ENG4511",
+      "ENG4513",
+      "ENG4514",
+      "ENG4515",
+      "ENG4516",
+      "ENG4517",
+      "ENG4519",
+      "ENG4520",
+      "ENG4521",
+      "ENG4523",
+      "ENG4550",
+      "ENG4560",
+      "ENG4570",
       "FIS4001",
       "FIS4002",
-      "FIS4003",
-      "INF1009",
-      "INF1012",
-      "INF1037",
-      "INF1383",
       "MAT4161",
       "MAT4162",
-      "MAT4163",
-      "MAT4174",
-      "MAT4200",
-      "MAT4202"
+      "MAT4164",
+      "MAT4200"
     ],
     "optativas": [
       ["CRE0712", 4],
-      ["ENG0422", 4],
-      ["ENG0424", 4],
-      ["ENG0426", 20],
-      ["EXT0100", 5],
+      ["ENG0563", 4],
+      ["ENG0567", 8],
+      ["ENG0572", 4],
+      ["ENG0575", 10],
+      ["ENG0578", 3],
+      ["ENG0579", 2],
+      ["EXT0100", 4],
       ["FIL0300", 4],
+      ["INF0307", 4],
       ["JUR0205", 2]
     ],
     "eletivas": [
-      ["ELL0100", 4],
-      ["ELU0900", 4]
+      ["ELL0900", 14]
     ],
     "enfase": {
       "Finanças e Análise de Risco (FAR)": {
         "obrigatórias": [],
-        "optativas": [],
-        "eletivas": []
+        "optativas": [["ENG0580", 12]],
+        "eletivas": [["ELL0900", 14]]
       },
       "Sistemas Produtivos (SPR)": {
         "obrigatórias": [],
-        "optativas": [],
-        "eletivas": []
+        "optativas": [["ENG0581", 12]],
+        "eletivas": [["ELL0900", 14]]
       },
       "Pesquisa Operacional & Analytics (POA)": {
         "obrigatórias": [],
-        "optativas": [],
-        "eletivas": []
+        "optativas": [["ENG0582", 12]],
+        "eletivas": [["ELL0900", 14]]
       }
     }
   },
@@ -299,7 +299,7 @@
       ["JUR0205", 2]
     ],
     "eletivas": [
-      ["ELU0900", 18]
+      ["ELL0900", 18]
     ],
     "enfase": {
       "Eletrônica e Sistemas Computacionais Avançados (ESC)": {
@@ -310,7 +310,7 @@
           ["ENG0463", 3]
         ], 
         "eletivas": [
-          ["ELU0900", 18]
+          ["ELL0900", 18]
         ]
       },
       "Sistemas Elétricos e Mercados de Energia (SEE)": {
@@ -322,7 +322,7 @@
           ["ENG0459", 3]
         ],
         "eletivas": [
-          ["ELU0900", 19]
+          ["ELL0900", 19]
         ]
       }
     }
