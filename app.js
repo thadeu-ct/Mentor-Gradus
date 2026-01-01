@@ -401,6 +401,8 @@ function renderizarPoolListaA(listaA) {
     const containerPool = document.getElementById("pool-list-container");
     if (!containerPool) return;
 
+    const scrollAnterior = containerPool.scrollTop;
+
     containerPool.innerHTML = '';
 
     // 1. Renderiza Matérias da Lista A (Já ordenadas: Obrigatórias -> Optativas)
@@ -461,6 +463,8 @@ function renderizarPoolListaA(listaA) {
             containerPool.appendChild(item);
         });
     }
+
+    containerPool.scrollTop = scrollAnterior;
 }
 
 // Mostra/Esconde os detalhes (Pré-requisitos) no Pool
