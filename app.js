@@ -253,7 +253,8 @@ function recalcularFilasABC() {
     
     // console.log(`📊 Filas: A=${listaA.length}, Travadas=${listaB.length + listaC.length}`);
     renderizarPoolListaA(listaFinal); // Manda tudo pro renderizador!
-    atualizarTudo();
+    atualizarContadorCreditos(); 
+    atualizarContadorGlobal();
 }
 // --- Funções Auxiliares da Lógica ---
 
