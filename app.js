@@ -182,6 +182,7 @@ function recalcularFilasABC() {
     let listaC = []; // Travadas por Matéria
 
     // --- Passo 1: Distribuição Inicial ---
+    // (Aqui a lógica é puramente estrutural, validação real acontece no loop)
     mapaUniverso.forEach(materia => {
         const temPre = materia.prereqs?.length && materia.prereqs[0].length;
         const temCo  = materia.correq?.length && materia.correq[0].length;
@@ -196,65 +197,76 @@ function recalcularFilasABC() {
 
     // --- Passo 2: O Loop de Resolução ---
     let houveMudanca = true;
-    let setDesbloqueados = new Set([...pegarMateriasNoBoard()]);
-    listaA.forEach(m => setDesbloqueados.add(m.codigo)); // O que já nasce livre ajuda a liberar
+
+    // [MUDANÇA CRÍTICA AQUI]
+    // setConcluidos: Usado para PRÉ-REQUISITOS. Só contém o que REALMENTE está no board.
+    // Isso garante que CRE1241 só libere se CRE0712 estiver no board.
+    let setConcluidos = new Set([...pegarMateriasNoBoard()]);
+
+    // setUniversoConhecido: Usado para SUBSTITUIÇÃO e CORREQUISITOS.
+    // Contém tudo que o aluno tem acesso (Board + Matérias do Pool).
+    // Permite que o nome mude (INF0307->INF1037) mesmo que a matéria esteja travada.
+    let setUniversoConhecido = new Set([...pegarMateriasNoBoard()]);
+    mapaUniverso.forEach(m => setUniversoConhecido.add(m.codigo)); 
+    // (Matérias sem pré-req que nasceram na Lista A também contam como 'existem' para correquisito)
+    listaA.forEach(m => setUniversoConhecido.add(m.codigo)); 
 
     while (houveMudanca) {
         houveMudanca = false;
 
-        // Lista B -> Tenta substituir e move para C
+        // Lista B -> Tenta substituir nome e move para C
         for (let i = listaB.length - 1; i >= 0; i--) {
             const mat = listaB[i];
-            if (tentaSubstituirGrupoPorMateria(mat, setDesbloqueados)) {
+            // Substituição usa o universo amplo (queremos ver o nome certo mesmo travado)
+            if (tentaSubstituirGrupoPorMateria(mat, setUniversoConhecido)) {
                 listaB.splice(i, 1); 
                 listaC.push(mat);
                 houveMudanca = true; 
             }
         }
 
-        // Lista C -> Valida e move para A
+        // Lista C -> Valida RIGOROSAMENTE e move para A
         for (let i = listaC.length - 1; i >= 0; i--) {
             const mat = listaC[i];
             
-            // Tenta substituir também na C (para correquisitos de grupo)
-            tentaSubstituirGrupoPorMateria(mat, setDesbloqueados);
+            tentaSubstituirGrupoPorMateria(mat, setUniversoConhecido);
 
-            const preOk = prerequisitosForamAtendidos(mat, setDesbloqueados);
-            const coOk = correquisitosForamAtendidos(mat, setDesbloqueados);
+            // PRÉ-REQ: Rigoroso (Set Concluidos = Só Board). 
+            // Se falta pré-req, fica travado (Lista C).
+            const preOk = prerequisitosForamAtendidos(mat, setConcluidos);
+
+            // COR-REQ: Flexível (Set Universo). 
+            // Se o correquisito existe no pool, libera (pq o Auto-Pull puxa junto).
+            const coOk = correquisitosForamAtendidos(mat, setUniversoConhecido);
 
             if (preOk && coOk) { 
                 listaC.splice(i, 1);
                 listaA.push(mat);
-                setDesbloqueados.add(mat.codigo);
+                // NOTA: Não adicionamos 'mat' ao setConcluidos aqui. 
+                // Isso impede o efeito cascata dentro do pool. Só o board libera.
                 houveMudanca = true;
             }
         }
     }
 
-    // --- Passo 3: Preparação Final (A Grande Mudança) ---
-    
-    // Marca quem sobrou travado nas listas B e C
+    // --- Passo 3: Preparação Final ---
     const marcarTravado = (lista) => lista.forEach(m => m.estaTravada = true);
     marcarTravado(listaB);
     marcarTravado(listaC);
 
-    // Junta TODAS as listas numa só para exibir
     let listaFinal = [...listaA, ...listaB, ...listaC];
 
-    // Ordenação Inteligente: 1. Disponíveis, 2. Travadas, 3. Alfabética
     listaFinal.sort((a, b) => {
         if (!!a.estaTravada !== !!b.estaTravada) return a.estaTravada ? 1 : -1;
         if (a.tipoReal !== b.tipoReal) return a.tipoReal === 'obrigatoria' ? -1 : 1; 
         return a.codigo.localeCompare(b.codigo);
     });
 
-    // Salva e Renderiza
     window.materiasProcessadas = listaFinal; 
     
-    // console.log(`📊 Filas: A=${listaA.length}, Travadas=${listaB.length + listaC.length}`);
-    renderizarPoolListaA(listaFinal); // Manda tudo pro renderizador!
+    renderizarPoolListaA(listaFinal);
     atualizarContadorCreditos(); 
-    atualizarContadorGlobal();
+    atualizarContadorGlobal();   
 }
 // --- Funções Auxiliares da Lógica ---
 
