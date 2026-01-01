@@ -164,7 +164,17 @@ function adicionarMateriaAoCache(materia) {
 function recalcularFilasABC() {
     if (!window.estadoBackend) return;
 
-    // --- Passo 0: Preparar o Universo ---
+    // --- Passo 0.1: Calcular Créditos Totais no Board ---
+    // Precisamos saber quanto o aluno já planejou para aplicar a regra de 'min-cred'
+    let creditosTotaisNoBoard = 0;
+    const codigosNoBoard = pegarMateriasNoBoard();
+    codigosNoBoard.forEach(cod => {
+        // Busca dados brutos para pegar os créditos
+        const mat = window.dadosMaterias.find(m => m.codigo === cod);
+        if (mat) creditosTotaisNoBoard += (mat.creditos || 0);
+    });
+
+    // --- Passo 0.2: Preparar o Universo ---
     const mapaUniverso = new Map();
     
     const processar = (lista, tipo) => {
@@ -179,16 +189,25 @@ function recalcularFilasABC() {
 
     let listaA = []; // Disponíveis
     let listaB = []; // Travadas por Grupo
-    let listaC = []; // Travadas por Matéria
+    let listaC = []; // Travadas por Matéria (ou CRÉDITOS)
 
     // --- Passo 1: Distribuição Inicial ---
-    // (Aqui a lógica é puramente estrutural, validação real acontece no loop)
     mapaUniverso.forEach(materia => {
         const temPre = materia.prereqs?.length && materia.prereqs[0].length;
         const temCo  = materia.correq?.length && materia.correq[0].length;
+        const minCred = materia["min-cred"] || 0;
 
-        if (!temPre && !temCo) listaA.push(materia);
-        else if (!temPre && temCo) listaC.push(materia);
+        // [NOVA REGRA] A Blitz dos Créditos Mínimos vem primeiro!
+        // Se não tem crédito suficiente, vai pra C e acabou (fica travada/rasurada).
+        if (minCred > creditosTotaisNoBoard) {
+            listaC.push(materia);
+        }
+        else if (!temPre && !temCo) {
+            listaA.push(materia);
+        }
+        else if (!temPre && temCo) {
+            listaC.push(materia);
+        }
         else {
             if (dependeDeGrupoOptativo(materia)) listaB.push(materia);
             else listaC.push(materia);
@@ -198,17 +217,11 @@ function recalcularFilasABC() {
     // --- Passo 2: O Loop de Resolução ---
     let houveMudanca = true;
 
-    // [MUDANÇA CRÍTICA AQUI]
-    // setConcluidos: Usado para PRÉ-REQUISITOS. Só contém o que REALMENTE está no board.
-    // Isso garante que CRE1241 só libere se CRE0712 estiver no board.
-    let setConcluidos = new Set([...pegarMateriasNoBoard()]);
-
-    // setUniversoConhecido: Usado para SUBSTITUIÇÃO e CORREQUISITOS.
-    // Contém tudo que o aluno tem acesso (Board + Matérias do Pool).
-    // Permite que o nome mude (INF0307->INF1037) mesmo que a matéria esteja travada.
-    let setUniversoConhecido = new Set([...pegarMateriasNoBoard()]);
+    // Sets de Validação (como definimos antes)
+    let setConcluidos = new Set([...codigosNoBoard]);
+    
+    let setUniversoConhecido = new Set([...codigosNoBoard]);
     mapaUniverso.forEach(m => setUniversoConhecido.add(m.codigo)); 
-    // (Matérias sem pré-req que nasceram na Lista A também contam como 'existem' para correquisito)
     listaA.forEach(m => setUniversoConhecido.add(m.codigo)); 
 
     while (houveMudanca) {
@@ -217,7 +230,6 @@ function recalcularFilasABC() {
         // Lista B -> Tenta substituir nome e move para C
         for (let i = listaB.length - 1; i >= 0; i--) {
             const mat = listaB[i];
-            // Substituição usa o universo amplo (queremos ver o nome certo mesmo travado)
             if (tentaSubstituirGrupoPorMateria(mat, setUniversoConhecido)) {
                 listaB.splice(i, 1); 
                 listaC.push(mat);
@@ -225,25 +237,28 @@ function recalcularFilasABC() {
             }
         }
 
-        // Lista C -> Valida RIGOROSAMENTE e move para A
+        // Lista C -> Valida TUDO (Créditos + Pré-Req + Co-Req) e move para A
         for (let i = listaC.length - 1; i >= 0; i--) {
             const mat = listaC[i];
             
             tentaSubstituirGrupoPorMateria(mat, setUniversoConhecido);
 
-            // PRÉ-REQ: Rigoroso (Set Concluidos = Só Board). 
-            // Se falta pré-req, fica travado (Lista C).
+            // 1. Validação de Créditos (Novamente, para garantir no loop)
+            const minCred = mat["min-cred"] || 0;
+            const creditosOk = (creditosTotaisNoBoard >= minCred);
+
+            // 2. Pré-requisitos (Rigoroso: só board libera)
             const preOk = prerequisitosForamAtendidos(mat, setConcluidos);
 
-            // COR-REQ: Flexível (Set Universo). 
-            // Se o correquisito existe no pool, libera (pq o Auto-Pull puxa junto).
+            // 3. Correquisitos (Flexível: universo libera)
             const coOk = correquisitosForamAtendidos(mat, setUniversoConhecido);
 
-            if (preOk && coOk) { 
+            // Só libera se passar nas 3 barreiras
+            if (creditosOk && preOk && coOk) { 
                 listaC.splice(i, 1);
                 listaA.push(mat);
-                // NOTA: Não adicionamos 'mat' ao setConcluidos aqui. 
-                // Isso impede o efeito cascata dentro do pool. Só o board libera.
+                // (Nota: Matérias liberadas por loop não entram no setConcluidos para evitar cascata prematura,
+                // mantendo a lógica de "só o board destrava pré-requisitos reais")
                 houveMudanca = true;
             }
         }
