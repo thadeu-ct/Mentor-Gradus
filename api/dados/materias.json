@@ -1904,6 +1904,14 @@
          "correq": [[]]
     },
     { 
+        "codigo": "INF1026",
+         "nome": "Computação Aplicada",
+         "creditos": 4,
+         "min-cred": 0,
+         "prereqs": [["CTC4002"]],
+         "correq": [[]]
+    },
+    { 
         "codigo": "INF1027",
          "nome": "Teste e Medição de Software",
          "creditos": 4,
