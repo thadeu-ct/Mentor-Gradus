@@ -465,6 +465,7 @@ function renderizarPoolListaA(listaA) {
     }
 
     containerPool.scrollTop = scrollAnterior;
+    filtrarPool();
 }
 
 // Mostra/Esconde os detalhes (Pré-requisitos) no Pool
