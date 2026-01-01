@@ -1304,6 +1304,86 @@
          "correq": [[]]
     },
     { 
+        "codigo": "ENG4519",
+         "nome": "Higiene e Segurança do Trabalho",
+         "creditos": 2,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4520",
+         "nome": "Engenharia de Métodos e Layout",
+         "creditos": 4,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4521",
+         "nome": "Controle e Gestão de Qualidade",
+         "creditos": 3,
+         "min-cred": 0,
+         "prereqs": [["ENG4501"]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4522",
+         "nome": "Introdução ao Marketing",
+         "creditos": 2,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4523",
+         "nome": "Ergonomia e Projeto de Produto",
+         "creditos": 3,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4524",
+         "nome": "Estudo Orientado em ADR",
+         "creditos": 3,
+         "min-cred": 0,
+         "prereqs": [["ENG4503", "ENG4504"]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4525",
+         "nome": "Comércio Internacional",
+         "creditos": 3,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [[]]
+    },
+    { 
+        "codigo": "ENG4550",
+         "nome": "Projeto Integrado - Sistemas Produtivos",
+         "creditos": 2,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [["ENG4504", "ENG4505"]]
+    },
+    { 
+        "codigo": "ENG4560",
+         "nome": "Projeto Integrado - Distribuição Física",
+         "creditos": 2,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [["ENG4508", "ENG4509"]]
+    },
+    { 
+        "codigo": "ENG4560",
+         "nome": "Projeto Integrado - Finanças e Análise de Risco",
+         "creditos": 2,
+         "min-cred": 0,
+         "prereqs": [[]],
+         "correq": [["ENG4512", "ENG4513"]]
+    },
+    { 
         "codigo": "ENG4700",
          "nome": "Estática",
          "creditos": 4,
