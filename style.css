@@ -1370,3 +1370,24 @@ h1 {
     margin-right: 10px;
     flex-shrink: 0;
 }
+
+/* Estilo para matérias travadas (Fila B e C) */
+.pool-item-locked {
+    background-color: #f5f5f5; /* Cinza bem claro */
+    border-left: 4px solid #bdc3c7; /* Cinza borda */
+    color: #95a5a6; /* Texto cinza */
+    cursor: not-allowed; /* Cursor de bloqueio */
+    opacity: 0.8;
+}
+
+.pool-item-locked:hover {
+    background-color: #ecf0f1;
+    transform: none; /* Não "pula" ao passar o mouse */
+    box-shadow: none;
+}
+
+.pool-item-lock-icon {
+    color: #7f8c8d;
+    margin-left: auto;
+    padding: 0 10px;
+}

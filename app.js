@@ -164,53 +164,45 @@ function adicionarMateriaAoCache(materia) {
 function recalcularFilasABC() {
     if (!window.estadoBackend) return;
 
-    // --- Passo 0: Preparar o Universo (CLONAGEM E ETIQUETAGEM) ---
+    // --- Passo 0: Preparar o Universo ---
     const mapaUniverso = new Map();
     
-    // 1. Processa Obrigatórias
-    window.estadoBackend.obrigatorias.forEach(m => {
-        const clone = JSON.parse(JSON.stringify(m));
-        clone.tipoReal = 'obrigatoria';
-        mapaUniverso.set(clone.codigo, clone);
-    });
+    const processar = (lista, tipo) => {
+        lista.forEach(m => {
+            const clone = JSON.parse(JSON.stringify(m));
+            clone.tipoReal = tipo; 
+            mapaUniverso.set(clone.codigo, clone);
+        });
+    };
+    processar(window.estadoBackend.obrigatorias, 'obrigatoria');
+    processar(window.estadoBackend.optativas_escolhidas, 'optativa');
 
-    // 2. Processa Optativas Escolhidas
-    window.estadoBackend.optativas_escolhidas.forEach(m => {
-        const clone = JSON.parse(JSON.stringify(m));
-        clone.tipoReal = 'optativa'; 
-        mapaUniverso.set(clone.codigo, clone);
-    });
-
-    let listaA = []; 
-    let listaB = []; 
-    let listaC = []; 
+    let listaA = []; // Disponíveis
+    let listaB = []; // Travadas por Grupo
+    let listaC = []; // Travadas por Matéria
 
     // --- Passo 1: Distribuição Inicial ---
     mapaUniverso.forEach(materia => {
-        const temPreReq = materia.prereqs && materia.prereqs.length > 0 && materia.prereqs[0].length > 0;
-        const temCoReq = materia.correq && materia.correq.length > 0 && materia.correq[0].length > 0;
+        const temPre = materia.prereqs?.length && materia.prereqs[0].length;
+        const temCo  = materia.correq?.length && materia.correq[0].length;
 
-        if (!temPreReq && !temCoReq) {
-            listaA.push(materia);
-        } else if (!temPreReq && temCoReq) {
-            listaC.push(materia);
-        } else {
-            if (dependeDeGrupoOptativo(materia)) {
-                listaB.push(materia);
-            } else {
-                listaC.push(materia);
-            }
+        if (!temPre && !temCo) listaA.push(materia);
+        else if (!temPre && temCo) listaC.push(materia);
+        else {
+            if (dependeDeGrupoOptativo(materia)) listaB.push(materia);
+            else listaC.push(materia);
         }
     });
 
     // --- Passo 2: O Loop de Resolução ---
     let houveMudanca = true;
-    let setDesbloqueados = new Set([...pegarMateriasNoBoard(), ...listaA.map(m => m.codigo)]);
+    let setDesbloqueados = new Set([...pegarMateriasNoBoard()]);
+    listaA.forEach(m => setDesbloqueados.add(m.codigo)); // O que já nasce livre ajuda a liberar
 
     while (houveMudanca) {
         houveMudanca = false;
 
-        // 2.1 Processar Lista B (Travadas por GRUPO nos PRÉ-REQUISITOS)
+        // Lista B -> Tenta substituir e move para C
         for (let i = listaB.length - 1; i >= 0; i--) {
             const mat = listaB[i];
             if (tentaSubstituirGrupoPorMateria(mat, setDesbloqueados)) {
@@ -220,18 +212,17 @@ function recalcularFilasABC() {
             }
         }
 
-        // 2.2 Processar Lista C (Travadas por Matéria Comum OU Correquisito de Grupo)
+        // Lista C -> Valida e move para A
         for (let i = listaC.length - 1; i >= 0; i--) {
             const mat = listaC[i];
+            
+            // Tenta substituir também na C (para correquisitos de grupo)
+            tentaSubstituirGrupoPorMateria(mat, setDesbloqueados);
 
-            // --- CORREÇÃO AQUI: Força a tentativa de substituição na Lista C também ---
-            // Isso garante que se o grupo estiver no Correquisito (caso do ENG4021), ele também seja trocado.
-            tentaSubstituirGrupoPorMateria(mat, setDesbloqueados); 
+            const preOk = prerequisitosForamAtendidos(mat, setDesbloqueados);
+            const coOk = correquisitosForamAtendidos(mat, setDesbloqueados);
 
-            const preReqOk = prerequisitosForamAtendidos(mat, setDesbloqueados);
-            const coReqOk = correquisitosForamAtendidos(mat, setDesbloqueados);
-
-            if (preReqOk && coReqOk) {
+            if (preOk && coOk) { 
                 listaC.splice(i, 1);
                 listaA.push(mat);
                 setDesbloqueados.add(mat.codigo);
@@ -240,27 +231,29 @@ function recalcularFilasABC() {
         }
     }
 
-    // --- Passo 3: Limpeza da Lista B ---
-    if (listaB.length > 0) {
-        console.log("⚠️ Liberando Lista B forçadamente:", listaB.map(m => m.nome));
-        listaA.push(...listaB);
-        listaB = [];
-    }
+    // --- Passo 3: Preparação Final (A Grande Mudança) ---
+    
+    // Marca quem sobrou travado nas listas B e C
+    const marcarTravado = (lista) => lista.forEach(m => m.estaTravada = true);
+    marcarTravado(listaB);
+    marcarTravado(listaC);
 
-    // --- Passo 4: Ordenação Final ---
-    listaA.sort((a, b) => {
-        if (a.tipoReal !== b.tipoReal) {
-            return a.tipoReal === 'obrigatoria' ? -1 : 1; 
-        }
+    // Junta TODAS as listas numa só para exibir
+    let listaFinal = [...listaA, ...listaB, ...listaC];
+
+    // Ordenação Inteligente: 1. Disponíveis, 2. Travadas, 3. Alfabética
+    listaFinal.sort((a, b) => {
+        if (!!a.estaTravada !== !!b.estaTravada) return a.estaTravada ? 1 : -1;
+        if (a.tipoReal !== b.tipoReal) return a.tipoReal === 'obrigatoria' ? -1 : 1; 
         return a.codigo.localeCompare(b.codigo);
     });
 
-    window.materiasProcessadas = listaA; 
+    // Salva e Renderiza
+    window.materiasProcessadas = listaFinal; 
     
-    console.log(`📊 Filas: A=${listaA.length} (Exibidas)`);
-    renderizarPoolListaA(listaA);
-    atualizarContadorCreditos();
-    atualizarContadorGlobal();
+    console.log(`📊 Filas: A=${listaA.length}, Travadas=${listaB.length + listaC.length}`);
+    renderizarPoolListaA(listaFinal); // Manda tudo pro renderizador!
+    atualizarTudo();
 }
 
 // --- Funções Auxiliares da Lógica ---
@@ -397,45 +390,65 @@ function correquisitosForamAtendidos(materia, setDisponiveis) {
 // --- 3.1 Renderização da Lista Lateral (Pool) ---
 
 // Desenha o Pool: 1º Matérias da Lista A, 2º Grupos Pendentes
-function renderizarPoolListaA(listaA) {
+function renderizarPoolListaA(listaMista) { // Recebe lista mista agora
     const containerPool = document.getElementById("pool-list-container");
     if (!containerPool) return;
 
     const scrollAnterior = containerPool.scrollTop;
-
     containerPool.innerHTML = '';
 
-    // 1. Renderiza Matérias da Lista A (Já ordenadas: Obrigatórias -> Optativas)
-    listaA.forEach(materia => {
+    // 1. Renderiza Matérias (Disponíveis e Travadas)
+    listaMista.forEach(materia => {
         if (document.getElementById('card-' + materia.codigo)) return;
 
         const item = document.createElement('div');
         item.className = 'pool-item';
         
-        // Define classe visual baseada no tipo real (definido no backend/processamento)
-        const classeTipo = (materia.tipoReal === 'optativa') ? 'pool-item-optativa' : 'pool-item-obrigatoria';
-        item.classList.add(classeTipo); 
-        
-        item.draggable = true;
+        // Decide o visual: Travado (Cinza) ou Normal (Azul/Laranja)
+        if (materia.estaTravada) {
+            item.classList.add('pool-item-locked'); 
+            // item.draggable = false; // Opcional: Se quiser impedir de arrastar
+        } else {
+            const classeTipo = (materia.tipoReal === 'optativa') ? 'pool-item-optativa' : 'pool-item-obrigatoria';
+            item.classList.add(classeTipo);
+            item.draggable = true;
+        }
+
         item.id = 'pool-item-' + materia.codigo;
-        
         item.dataset.codigo = normalizarTexto(materia.codigo);
         item.dataset.nome = normalizarTexto(materia.nome);
         item.dataset.codigoOriginal = materia.codigo;
+
+        // Ícone: Cadeado se travado, Info se normal
+        const iconeDireita = materia.estaTravada 
+            ? '<i class="fas fa-lock pool-item-lock-icon" title="Pré-requisitos não atendidos"></i>'
+            : '<i class="fas fa-info-circle pool-item-info-btn"></i>';
 
         item.innerHTML = `
             <div class="pool-item-main-content">
                 <span class="pool-item-code">${materia.codigo}</span>
                 <span class="pool-item-title">${materia.nome}</span>
             </div>
-            <i class="fas fa-info-circle pool-item-info-btn"></i>
+            ${iconeDireita}
             <div class="pool-item-details"></div>
         `;
 
-        item.querySelector('.pool-item-info-btn').onclick = (e) => {
-            e.stopPropagation();
-            alternarDetalhesInfo(item, materia);
-        };
+        // Evento do botão Info (Só se não estiver travado, ou ambos se preferir)
+        const infoBtn = item.querySelector('.pool-item-info-btn');
+        if (infoBtn) {
+            infoBtn.onclick = (e) => {
+                e.stopPropagation();
+                alternarDetalhesInfo(item, materia);
+            };
+        }
+        
+        // Opcional: Clique no travado mostra alerta
+        if (materia.estaTravada) {
+            item.onclick = () => {
+                // Você pode fazer um console.log ou um alert suave aqui se quiser
+                console.log(`🔒 ${materia.nome} está travada por pré-requisitos.`);
+            };
+        }
 
         containerPool.appendChild(item);
     });
@@ -446,7 +459,6 @@ function renderizarPoolListaA(listaA) {
             const item = document.createElement('div');
             item.className = 'pool-item-grupo';
             item.id = 'grupo-' + grupo.codigo_grupo.replace(/[^a-zA-Z0-9]/g, '');
-            
             item.dataset.codigo = normalizarTexto(grupo.codigo_grupo);
             item.dataset.nome = normalizarTexto(grupo.fonte || "Optativa"); 
 
@@ -454,18 +466,17 @@ function renderizarPoolListaA(listaA) {
                 <span class="pool-item-title">${grupo.codigo_grupo}</span>
                 <span class="pool-item-chip">${grupo.faltando} Créd.</span>
             `;
-            
-            item.onclick = function(e) {
+            item.onclick = (e) => {
                 e.stopPropagation(); 
                 abrirModalSelecao(grupo.codigo_grupo, grupo.faltando);
             };
-            
             containerPool.appendChild(item);
         });
     }
 
+    // 3. Restaura Scroll e Filtro
     containerPool.scrollTop = scrollAnterior;
-    filtrarPool();
+    filtrarPool(); 
 }
 
 // Mostra/Esconde os detalhes (Pré-requisitos) no Pool
