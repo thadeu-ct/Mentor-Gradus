@@ -255,7 +255,6 @@ function recalcularFilasABC() {
     renderizarPoolListaA(listaFinal); // Manda tudo pro renderizador!
     atualizarTudo();
 }
-
 // --- Funções Auxiliares da Lógica ---
 
 function tentaSubstituirGrupoPorMateria(materia, setDesbloqueados) {
@@ -390,70 +389,76 @@ function correquisitosForamAtendidos(materia, setDisponiveis) {
 // --- 3.1 Renderização da Lista Lateral (Pool) ---
 
 // Desenha o Pool: 1º Matérias da Lista A, 2º Grupos Pendentes
-function renderizarPoolListaA(listaMista) { // Recebe lista mista agora
+function renderizarPoolListaA(listaMista) {
     const containerPool = document.getElementById("pool-list-container");
     if (!containerPool) return;
 
     const scrollAnterior = containerPool.scrollTop;
     containerPool.innerHTML = '';
 
-    // 1. Renderiza Matérias (Disponíveis e Travadas)
     listaMista.forEach(materia => {
+        // Se já está no board, não desenha
         if (document.getElementById('card-' + materia.codigo)) return;
 
         const item = document.createElement('div');
         item.className = 'pool-item';
         
-        // Decide o visual: Travado (Cinza) ou Normal (Azul/Laranja)
+        // --- 1. Lógica de Estilo e Bloqueio ---
+        let tooltipTexto = "";
+        
         if (materia.estaTravada) {
-            item.classList.add('pool-item-locked'); 
-            // item.draggable = false; // Opcional: Se quiser impedir de arrastar
+            item.classList.add('pool-item-locked');
+            item.draggable = false; // IMPEDE O ARRASTO (Resolve o bug de tentar puxar)
+            
+            // Calcula o motivo do bloqueio para o Tooltip
+            const preReqsFaltantes = formatarRequisitos(materia.prereqs); // ou lógica mais complexa se quiser filtrar só o que falta
+            tooltipTexto = `BLOQUEADA 🔒\nPré-requisitos pendentes: ${preReqsFaltantes}`;
+            item.title = tooltipTexto; // Tooltip nativo do navegador
         } else {
+            // Define cor (Azul/Laranja)
             const classeTipo = (materia.tipoReal === 'optativa') ? 'pool-item-optativa' : 'pool-item-obrigatoria';
             item.classList.add(classeTipo);
-            item.draggable = true;
+            item.draggable = true; // Permite arrastar
+            item.title = materia.nome; // Tooltip simples
         }
 
+        // IDs e Datasets
         item.id = 'pool-item-' + materia.codigo;
         item.dataset.codigo = normalizarTexto(materia.codigo);
         item.dataset.nome = normalizarTexto(materia.nome);
         item.dataset.codigoOriginal = materia.codigo;
 
-        // Ícone: Cadeado se travado, Info se normal
-        const iconeDireita = materia.estaTravada 
-            ? '<i class="fas fa-lock pool-item-lock-icon" title="Pré-requisitos não atendidos"></i>'
-            : '<i class="fas fa-info-circle pool-item-info-btn"></i>';
+        // --- 2. HTML Interno (Com Info para todos + Cadeado para travados) ---
+        // Se estiver travada, mostra cadeado. Se não, vazio.
+        const iconeCadeado = materia.estaTravada 
+            ? '<i class="fas fa-lock pool-item-lock-icon"></i>' 
+            : '';
 
         item.innerHTML = `
             <div class="pool-item-main-content">
                 <span class="pool-item-code">${materia.codigo}</span>
                 <span class="pool-item-title">${materia.nome}</span>
             </div>
-            ${iconeDireita}
+            
+            <div class="pool-item-actions">
+                ${iconeCadeado}
+                <i class="fas fa-info-circle pool-item-info-btn" title="Ver detalhes"></i>
+            </div>
+            
             <div class="pool-item-details"></div>
         `;
 
-        // Evento do botão Info (Só se não estiver travado, ou ambos se preferir)
+        // --- 3. Evento do Botão Info (Funciona para todos) ---
         const infoBtn = item.querySelector('.pool-item-info-btn');
-        if (infoBtn) {
-            infoBtn.onclick = (e) => {
-                e.stopPropagation();
-                alternarDetalhesInfo(item, materia);
-            };
-        }
-        
-        // Opcional: Clique no travado mostra alerta
-        if (materia.estaTravada) {
-            item.onclick = () => {
-                // Você pode fazer um console.log ou um alert suave aqui se quiser
-                console.log(`🔒 ${materia.nome} está travada por pré-requisitos.`);
-            };
-        }
+        infoBtn.onclick = (e) => {
+            e.stopPropagation(); // Não dispara drag nem clique do item
+            alternarDetalhesInfo(item, materia);
+        };
 
         containerPool.appendChild(item);
     });
 
-    // 2. Renderiza Grupos Pendentes (Sempre no final)
+    // Renderiza Grupos Pendentes (Mantido igual)
     if (window.estadoBackend && window.estadoBackend.grupos_pendentes) {
         window.estadoBackend.grupos_pendentes.forEach(grupo => {
             const item = document.createElement('div');
@@ -474,7 +479,6 @@ function renderizarPoolListaA(listaMista) { // Recebe lista mista agora
         });
     }
 
-    // 3. Restaura Scroll e Filtro
     containerPool.scrollTop = scrollAnterior;
     filtrarPool(); 
 }
@@ -825,7 +829,6 @@ function obterMateriasNaColuna(idColunaAlvo) {
 // Valida regras que dependem do TEMPO (Pré-requisitos e Mínimo de Créditos)
 function validarRegrasDeNegocio(materia, idColunaAlvo) {
     if (!materia) return { ok: true };
-    console.log(`🔍 Validando ${materia.codigo}. Pré-reqs atuais:`, JSON.stringify(materia.prereqs));
     const numeroPeriodo = parseInt(idColunaAlvo.replace('p', ''), 10);
     const cursadasAnteriores = obterMateriasCursadasAte(idColunaAlvo);
     const creditosAcumulados = obterCreditosAcumuladosAte(numeroPeriodo);

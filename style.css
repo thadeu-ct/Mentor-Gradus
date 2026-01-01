@@ -1371,23 +1371,37 @@ h1 {
     flex-shrink: 0;
 }
 
-/* Estilo para matérias travadas (Fila B e C) */
+/* Matéria Travada (Fila B/C) */
 .pool-item-locked {
-    background-color: #f5f5f5; /* Cinza bem claro */
-    border-left: 4px solid #bdc3c7; /* Cinza borda */
-    color: #95a5a6; /* Texto cinza */
-    cursor: not-allowed; /* Cursor de bloqueio */
-    opacity: 0.8;
+    background-color: #ecf0f1; /* Fundo cinza sólido */
+    /* Opcional: Efeito listrado para dar ideia de 'interditado' */
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        #e0e0e0 10px,
+        #e0e0e0 20px
+    );
+    border-left: 4px solid #95a5a6;
+    color: #7f8c8d;
+    cursor: help; /* Cursor de interrogação para indicar que tem dica no hover */
 }
 
-.pool-item-locked:hover {
-    background-color: #ecf0f1;
-    transform: none; /* Não "pula" ao passar o mouse */
-    box-shadow: none;
+/* O Rasurado nos textos */
+.pool-item-locked .pool-item-title,
+.pool-item-locked .pool-item-code {
+    text-decoration: line-through;
+    opacity: 0.7; /* Leve transparência só no texto */
+}
+
+/* Garante que o ícone de Info e Cadeado fiquem alinhados */
+.pool-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; /* Empurra para a direita */
 }
 
 .pool-item-lock-icon {
-    color: #7f8c8d;
-    margin-left: auto;
-    padding: 0 10px;
+    color: #c0392b; /* Cadeado vermelho para chamar atenção */
 }
