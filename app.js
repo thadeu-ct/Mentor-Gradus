@@ -36,7 +36,7 @@ function iniciarMentorGradus() {
     // 3. Verifica em qual página está
     const plannerBoard = document.getElementById('board-container');
     if (plannerBoard) {
-        console.log("🚀 Modo: Planejador Iniciado");
+        // console.log("🚀 Modo: Planejador Iniciado");
         inicializarPaginaPlanner();
     }
 }
@@ -75,7 +75,7 @@ function inicializarPaginaPlanner() {
 // Busca os dados JSON do servidor (Python)
 async function carregarDadosIniciais() {
     try {
-        console.log("Baixando dados do servidor...");
+        // console.log("Baixando dados do servidor...");
 
         // Faz 3 pedidos ao servidos, dados formações, dominios e optativas junto
         const [formacoes, dominios, optativas] = await Promise.all([ // capta um a um e aloca separadamente
@@ -93,7 +93,7 @@ async function carregarDadosIniciais() {
         popularDropdown('#formacoes-options', Object.keys(formacoes));
         popularDropdown('#dominios-options', Object.keys(dominios));
         
-        console.log("Dados carregados com sucesso. Optativas disponíveis:", Object.keys(optativas).length);
+        // console.log("Dados carregados com sucesso. Optativas disponíveis:", Object.keys(optativas).length);
 
     } catch (erro) {
         console.error("Erro fatal carregando dados:", erro);
@@ -251,7 +251,7 @@ function recalcularFilasABC() {
     // Salva e Renderiza
     window.materiasProcessadas = listaFinal; 
     
-    console.log(`📊 Filas: A=${listaA.length}, Travadas=${listaB.length + listaC.length}`);
+    // console.log(`📊 Filas: A=${listaA.length}, Travadas=${listaB.length + listaC.length}`);
     renderizarPoolListaA(listaFinal); // Manda tudo pro renderizador!
     atualizarTudo();
 }
@@ -272,7 +272,7 @@ function tentaSubstituirGrupoPorMateria(materia, setDesbloqueados) {
                     const opcaoEscolhida = opcoes.find(op => setDesbloqueados.has(op));
                     
                     if (opcaoEscolhida) {
-                        console.log(`♻️ SUBSTITUIÇÃO: Em ${materia.codigo}, trocando grupo ${cod} por ${opcaoEscolhida}`);
+                        // console.log(`♻️ SUBSTITUIÇÃO: Em ${materia.codigo}, trocando grupo ${cod} por ${opcaoEscolhida}`);
                         grupo[i] = opcaoEscolhida; 
                         houveSubstituicao = true;
                     }
