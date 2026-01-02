@@ -1376,34 +1376,50 @@ function salvarBoardLocal() {
 function limparMateriasExcedentes() {
     if (!window.estadoBackend) return;
 
-    // 1. Cria a "Lista VIP": Tudo que o backend disse que é necessário agora
-    const listaVIP = new Set();
-    
-    // Adiciona Obrigatórias
+    // 1. Identificar o que é OBRIGATÓRIO agora (A "Elite")
+    const novasObrigatorias = new Set();
     if (window.estadoBackend.obrigatorias) {
-        window.estadoBackend.obrigatorias.forEach(m => listaVIP.add(m.codigo));
-    }
-    // Adiciona Optativas que já foram escolhidas/validadas
-    if (window.estadoBackend.optativas_escolhidas) {
-        window.estadoBackend.optativas_escolhidas.forEach(m => listaVIP.add(m.codigo));
+        window.estadoBackend.obrigatorias.forEach(m => novasObrigatorias.add(m.codigo));
     }
 
-    // 2. A Faxina: Varre o Board e remove quem não é VIP
+    // 2. Identificar o que é VÁLIDO no geral (Obrigatorias + Optativas)
+    const novasValidasTotal = new Set([...novasObrigatorias]);
+    if (window.estadoBackend.optativas_escolhidas) {
+        window.estadoBackend.optativas_escolhidas.forEach(m => novasValidasTotal.add(m.codigo));
+    }
+
     const cardsNoBoard = document.querySelectorAll('#board-container .materia-card');
     let removeuAlguem = false;
 
     cardsNoBoard.forEach(card => {
         const codigo = card.dataset.codigo;
-        // Se a matéria do board NÃO está na lista do backend...
-        if (!listaVIP.has(codigo)) {
-            // console.log(`🗑️ Removendo excedente: ${codigo}`);
-            card.remove(); // Remove do DOM
+        
+        // --- CHECAGEM 1: O Backend disse que não serve mais pra nada? ---
+        if (!novasValidasTotal.has(codigo)) {
+            card.remove();
+            removeuAlguem = true;
+            return; // Já removeu, vai pro próximo
+        }
+
+        // --- CHECAGEM 2 (A CORREÇÃO): A Regra da "Despromoção" ---
+        // Verificamos o estado VISUAL ATUAL do card (antes de ser hidratado/atualizado)
+        const tagAnterior = card.querySelector('.category-tag');
+        
+        // Verifica se ele ESTAVA marcado como Obrigatória
+        const eraObrigatoria = tagAnterior && 
+                               (tagAnterior.classList.contains('obrigatoria') || 
+                                tagAnterior.textContent.toLowerCase().includes('obrigatória'));
+
+        // Se era Obrigatória, mas na lista nova NÃO É MAIS Obrigatória (virou optativa ou sobra)...
+        // ...significa que ela perdeu a razão de estar ali (pertencia ao curso removido).
+        if (eraObrigatoria && !novasObrigatorias.has(codigo)) {
+            card.remove(); // Tchau!
             removeuAlguem = true;
         }
     });
 
     if (removeuAlguem) {
-        console.log("🧹 Board limpo de matérias órfãs.");
+        console.log("🧹 Board limpo de matérias órfãs ou despromovidas.");
     }
 }
 
