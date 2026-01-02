@@ -1482,19 +1482,34 @@ function carregarBoardLocal() {
 
 // Atualiza o HTML dos cards no board com os dados reais (Nome, Créditos, etc.)
 function hidratarBoard() {
+    // 1. Cria mapas rápidos para saber o tipo real de cada matéria AGORA
+    const mapObrigatorias = new Set();
+    const mapOptativas = new Set();
+    
+    if (window.estadoBackend) {
+        window.estadoBackend.obrigatorias.forEach(m => mapObrigatorias.add(m.codigo));
+        window.estadoBackend.optativas_escolhidas.forEach(m => mapOptativas.add(m.codigo));
+    }
+
     document.querySelectorAll('.board-column .materia-card').forEach(card => {
         const codigo = card.dataset.codigo;
-        // Tenta achar os dados atualizados da matéria
         const materia = encontrarMateria(codigo);
 
         if (materia) {
-            // Atualiza visualmente o card que estava "...carregando..."
-            const corBarra = (materia.tipoReal === 'optativa') ? '#f39c12' : '#3498db';
-            const textoTag = (materia.tipoReal === 'optativa') ? 'Optativa' : 'Obrigatória';
+            // 2. Redefine o tipo com base na verdade do Backend atual
+            let tipoReal = 'obrigatoria'; // Default
+            if (mapOptativas.has(codigo)) tipoReal = 'optativa';
+            else if (mapObrigatorias.has(codigo)) tipoReal = 'obrigatoria';
+            
+            // Se não estiver em nenhum (ex: matéria órfã que escapou da limpeza), assume o que já estava ou obrigatoria.
+            
+            const corBarra = (tipoReal === 'optativa') ? '#f39c12' : '#3498db';
+            const textoTag = (tipoReal === 'optativa') ? 'Optativa' : 'Obrigatória';
             const preReqTexto = formatarRequisitos(materia.prereqs);
             const coReqTexto = formatarRequisitos(materia.correq);
 
-            // Reconstrói o HTML interno
+            // 3. Atualiza o HTML (e garante draggable=true)
+            card.draggable = true; // Força ser arrastável
             card.innerHTML = `
                 <div class="card-header-bar" style="background-color: ${corBarra};"></div> 
                 <div class="card-content">
@@ -1511,7 +1526,7 @@ function hidratarBoard() {
                     </div>
                 </div>
                 <div class="card-footer">
-                    <span class="category-tag ${materia.tipoReal || 'obrigatoria'}">${textoTag}</span>
+                    <span class="category-tag ${tipoReal}">${textoTag}</span>
                 </div>
             `;
         }
