@@ -148,6 +148,7 @@ function processarEstadoDoBackend(materiaManual = null) {
         estadoRecebido.optativas_escolhidas.forEach(adicionarMateriaAoCache);
 
         // 3. Executa o algoritmo inteligente de organização
+        hidratarBoard();
         recalcularFilasABC();
         salvarBoardLocal();
     })
@@ -1476,6 +1477,44 @@ function carregarBoardLocal() {
             card.innerHTML = `<span class="card-code">${cod}</span>...carregando...`; 
             contentDiv.appendChild(card);
         });
+    });
+}
+
+// Atualiza o HTML dos cards no board com os dados reais (Nome, Créditos, etc.)
+function hidratarBoard() {
+    document.querySelectorAll('.board-column .materia-card').forEach(card => {
+        const codigo = card.dataset.codigo;
+        // Tenta achar os dados atualizados da matéria
+        const materia = encontrarMateria(codigo);
+
+        if (materia) {
+            // Atualiza visualmente o card que estava "...carregando..."
+            const corBarra = (materia.tipoReal === 'optativa') ? '#f39c12' : '#3498db';
+            const textoTag = (materia.tipoReal === 'optativa') ? 'Optativa' : 'Obrigatória';
+            const preReqTexto = formatarRequisitos(materia.prereqs);
+            const coReqTexto = formatarRequisitos(materia.correq);
+
+            // Reconstrói o HTML interno
+            card.innerHTML = `
+                <div class="card-header-bar" style="background-color: ${corBarra};"></div> 
+                <div class="card-content">
+                    <div>
+                        <span class="card-code">${materia.codigo}</span>
+                        <span class="card-chip creditos">${materia.creditos} Créditos</span>
+                    </div>
+                    <h4 class="card-title">${materia.nome}</h4>
+                    <div class="card-prereqs">
+                        <strong>Pré-req:</strong> <span>${preReqTexto}</span>
+                    </div>
+                     <div class="card-prereqs" style="margin-top:4px;">
+                        <strong>Correq:</strong> <span>${coReqTexto}</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="category-tag ${materia.tipoReal || 'obrigatoria'}">${textoTag}</span>
+                </div>
+            `;
+        }
     });
 }
 
