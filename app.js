@@ -35,9 +35,12 @@ function iniciarMentorGradus() {
 
     // 3. Verifica em qual página está
     const plannerBoard = document.getElementById('board-container');
+    const gradeBoard = document.getElementById('grade-grid-container');
+
     if (plannerBoard) {
-        // console.log("🚀 Modo: Planejador Iniciado");
         inicializarPaginaPlanner();
+    } else if (gradeBoard) {
+        inicializarPaginaGrade();
     }
 }
 
@@ -680,6 +683,19 @@ function adicionarEventosDeArrasto(alvo) {
             if (tipoOrigem === 'card') {
                 draggedItem.remove();
                 atualizarTudo();
+            }
+        }
+
+        // --- Drop na Grade Horária (Células da Tabela) ---
+        else if (alvo.classList.contains('grid-dropzone')) {
+            // Apenas move o elemento visualmente
+            if (draggedItem) {
+                // Se o bloco veio do Pool, ele é um "filho" novo. Se veio de outra célula, é apenas movido.
+                alvo.appendChild(draggedItem);
+                
+                // Ajuste visual para o bloco caber bonito na célula
+                draggedItem.style.width = "100%";
+                draggedItem.style.margin = "0";
             }
         }
     });
