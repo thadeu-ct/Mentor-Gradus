@@ -6,10 +6,10 @@
 function inicializarPaginaGrade() {
     console.log("📅 Iniciando Grade Horária...");
     
-    // 1. Carrega dados globais
+    // 1. Carrega dados globais (Matérias, Nomes, etc.)
     carregarDadosIniciais().then(() => {
         
-        // 2. Carrega o plano do aluno
+        // 2. Carrega o plano do aluno do LocalStorage
         const salvo = localStorage.getItem('mentorGradus_Estado');
         if (!salvo) {
             alert("Nenhum planejamento encontrado. Monte sua grade no Planner primeiro!");
@@ -28,11 +28,10 @@ function inicializarPaginaGrade() {
 }
 
 function configurarSidebarGrade(boardSalvo) {
-    // ALVO CORRIGIDO: Agora buscamos a área da esquerda
     const containerSelecao = document.getElementById('periodos-selection');
     if (!containerSelecao) return;
 
-    containerSelecao.innerHTML = ''; // Limpa anterior
+    containerSelecao.innerHTML = ''; // Limpa lista anterior
 
     // Ordena os períodos (p1, p2, p3...)
     const periodosOrdenados = Object.keys(boardSalvo).sort((a,b) => {
@@ -46,30 +45,28 @@ function configurarSidebarGrade(boardSalvo) {
         // Só cria botão se tiver matérias
         if (qtdMaterias > 0) {
             const chip = document.createElement('div');
-            // Usa as classes de estilo que já existem no CSS
+            
+            // Estado Inicial: Classe 'chip' (Cinza, clicável)
             chip.className = 'chip'; 
-            chip.style.cursor = 'pointer';
-            chip.style.marginBottom = '5px';
             chip.textContent = `${numero}º Período (${qtdMaterias})`;
+            chip.dataset.periodo = idCol;
             
             // Evento de Clique
             chip.addEventListener('click', () => {
-                // 1. Visual: Marca este como selecionado e desmarca outros
-                document.querySelectorAll('#periodos-selection .chip').forEach(c => {
-                    c.classList.remove('chip-selected');
-                    c.classList.add('chip'); // Garante estilo base
-                    c.style.backgroundColor = '#f0f0f0'; // Cor padrão
-                    c.style.color = '#333';
+                // 1. Reseta TODOS os chips para o estado cinza (.chip)
+                const todosChips = containerSelecao.querySelectorAll('div');
+                todosChips.forEach(c => {
+                    c.className = 'chip'; // Volta a ser cinza
                 });
-                
-                chip.classList.add('chip-selected'); // Estilo ativo (Verde)
-                chip.classList.remove('chip'); // Remove base para não conflitar se necessário
-                
-                // 2. Atualiza Título da Direita
+
+                // 2. Define o clicado como selecionado (.chip-selected)
+                chip.className = 'chip-selected'; // Fica verde
+
+                // 3. Atualiza Título da Direita
                 const tituloDireita = document.querySelector('.pool-header h3');
                 if(tituloDireita) tituloDireita.textContent = `Matérias do ${numero}º Período`;
 
-                // 3. Gera os blocos na Direita
+                // 4. Gera os blocos na Direita
                 gerarBlocosDeCreditos(boardSalvo[idCol]);
             });
 
@@ -83,6 +80,7 @@ function gerarBlocosDeCreditos(listaCodigos) {
     container.innerHTML = ''; // Limpa a lista
 
     listaCodigos.forEach(codigo => {
+        // Busca os dados da matéria no cache global
         const materia = window.dadosMaterias.find(m => m.codigo === codigo);
         if (!materia) return; 
 
@@ -92,6 +90,7 @@ function gerarBlocosDeCreditos(listaCodigos) {
         for (let i = 1; i <= creditos; i++) {
             const bloco = document.createElement('div');
             
+            // Reutiliza classes do pool para layout
             bloco.className = 'grade-card pool-item'; 
             
             // Estilo visual do bloquinho
