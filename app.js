@@ -67,6 +67,8 @@ function inicializarPaginaPlanner() {
         const areasArrastaveis = document.querySelectorAll('.column-content, .pool-list');
         areasArrastaveis.forEach(area => adicionarEventosDeArrasto(area));
         
+        carregarBoardLocal();
+
         // Inicia processo de captação das matérias
         processarEstadoDoBackend(); 
     });
@@ -139,12 +141,15 @@ function processarEstadoDoBackend(materiaManual = null) {
         // Salva o retorno do Python na variável global
         window.estadoBackend = estadoRecebido;
         
+        limparMateriasExcedentes();
+
         // Guarda as informações detalhadas das matérias no cache global
         estadoRecebido.obrigatorias.forEach(adicionarMateriaAoCache);
         estadoRecebido.optativas_escolhidas.forEach(adicionarMateriaAoCache);
 
         // 3. Executa o algoritmo inteligente de organização
         recalcularFilasABC();
+        salvarBoardLocal();
     })
     .catch(erro => console.error("Erro ao processar estado:", erro));
 }
@@ -1174,6 +1179,7 @@ function atualizarTudo() {
     atualizarContadorCreditos(); // Atualiza os contadores das colunas (Períodos)
     atualizarContadorGlobal();   // Atualiza o contador do Header (Planejado / Total)
     validarBoardEmCascata();     // Verifica se alguma regra foi quebrada
+    salvarBoardLocal();          // Salva os períodos no localhost
     processarEstadoDoBackend();  // Envia o novo estado para o Python e recalcula as filas A/B/C
 }
 
@@ -1332,6 +1338,145 @@ function encontrarMateria(codigo) {
     // 2. Fallback: Lista Original (Dados brutos do JSON)
     // Isso garante que se o item ainda não foi processado (ex: acabou de carregar), ele é achado.
     return window.dadosMaterias.find(m => m.codigo === codigo);
+}
+
+// --- Persistência Local (LocalStorage) ---
+
+function salvarBoardLocal() {
+    const estadoBoard = {};
+    
+    // 1. Salva as colunas e seus cards
+    document.querySelectorAll('.board-column').forEach(coluna => {
+        const idColuna = coluna.querySelector('.column-content').dataset.columnId; // ex: "p1"
+        const cards = [];
+        coluna.querySelectorAll('.materia-card').forEach(card => {
+            cards.push(card.dataset.codigo);
+        });
+        estadoBoard[idColuna] = cards;
+    });
+
+    // 2. Salva as seleções (Cursos, Ênfases)
+    const selecoes = {
+        formacoes: pegarValoresSelecionados("#formacoes-selection"),
+        dominios: pegarValoresSelecionados("#dominios-selection"),
+        enfase: document.querySelector("#enfase-selection .chip-selected")?.dataset.value || null
+    };
+
+    const pacoteSalvo = {
+        board: estadoBoard,
+        selecoes: selecoes,
+        timestamp: new Date().getTime()
+    };
+
+    localStorage.setItem('mentorGradus_Estado', JSON.stringify(pacoteSalvo));
+    // console.log("💾 Estado salvo no navegador.");
+}
+
+function limparMateriasExcedentes() {
+    if (!window.estadoBackend) return;
+
+    // 1. Cria a "Lista VIP": Tudo que o backend disse que é necessário agora
+    const listaVIP = new Set();
+    
+    // Adiciona Obrigatórias
+    if (window.estadoBackend.obrigatorias) {
+        window.estadoBackend.obrigatorias.forEach(m => listaVIP.add(m.codigo));
+    }
+    // Adiciona Optativas que já foram escolhidas/validadas
+    if (window.estadoBackend.optativas_escolhidas) {
+        window.estadoBackend.optativas_escolhidas.forEach(m => listaVIP.add(m.codigo));
+    }
+
+    // 2. A Faxina: Varre o Board e remove quem não é VIP
+    const cardsNoBoard = document.querySelectorAll('#board-container .materia-card');
+    let removeuAlguem = false;
+
+    cardsNoBoard.forEach(card => {
+        const codigo = card.dataset.codigo;
+        // Se a matéria do board NÃO está na lista do backend...
+        if (!listaVIP.has(codigo)) {
+            // console.log(`🗑️ Removendo excedente: ${codigo}`);
+            card.remove(); // Remove do DOM
+            removeuAlguem = true;
+        }
+    });
+
+    if (removeuAlguem) {
+        console.log("🧹 Board limpo de matérias órfãs.");
+    }
+}
+
+function carregarBoardLocal() {
+    const salvo = localStorage.getItem('mentorGradus_Estado');
+    if (!salvo) return;
+
+    const dados = JSON.parse(salvo);
+    
+    // 1. Restaura Seleções (Visualmente)
+    // (Precisamos adicionar os chips na sidebar para o processarEstadoDoBackend ler depois)
+    const recriarChips = (seletor, lista) => {
+        const area = document.querySelector(seletor);
+        if(!area) return;
+        area.innerHTML = '';
+        lista.forEach(val => {
+            const span = document.createElement('span');
+            span.className = 'chip-selected';
+            span.dataset.value = val;
+            // Tenta pegar o texto bonito se der, senão usa o valor
+            const texto = val.startsWith("Engenharia de ") ? "Eng. " + val.substring(14) : val;
+            span.innerHTML = `${texto} <i class="fas fa-times"></i>`;
+            area.appendChild(span);
+        });
+    };
+
+    recriarChips("#formacoes-selection", dados.selecoes.formacoes);
+    recriarChips("#dominios-selection", dados.selecoes.dominios);
+    
+    if (dados.selecoes.enfase) {
+        // A ênfase é chata porque o container começa oculto.
+        // Vamos forçar a criação do chip, a validação visual ocorre depois.
+        const areaEnfase = document.querySelector("#enfase-selection");
+        if(areaEnfase) {
+            const span = document.createElement('span');
+            span.className = 'chip-selected';
+            span.dataset.value = dados.selecoes.enfase;
+            span.innerHTML = `${dados.selecoes.enfase} <i class="fas fa-times"></i>`;
+            areaEnfase.appendChild(span);
+            document.getElementById('enfase-section').style.display = 'block';
+        }
+    }
+
+    // 2. Restaura o Board (Colunas e Cards)
+    // Precisamos garantir que as colunas existam (p3, p4...)
+    const colunasSalvas = Object.keys(dados.board); // ["p1", "p2", "p3"...]
+    
+    // Ordena para criar na ordem certa (p1, p2...)
+    colunasSalvas.sort((a,b) => parseInt(a.replace('p','')) - parseInt(b.replace('p','')));
+
+    colunasSalvas.forEach(idCol => {
+        // Se a coluna não existe (ex: p3), cria
+        let contentDiv = document.querySelector(`.column-content[data-column-id="${idCol}"]`);
+        if (!contentDiv) {
+            adicionarColunaPeriodo(); // Cria p3, p4... até chegar no necessário
+            contentDiv = document.querySelector(`.column-content[data-column-id="${idCol}"]`);
+        }
+
+        // Adiciona os cards (TEMPORÁRIOS - Só o esqueleto)
+        // O conteúdo real (nome, creditos) será preenchido quando o "processarEstadoDoBackend"
+        // rodar e baixar os dados do Python.
+        const codigos = dados.board[idCol];
+        codigos.forEach(cod => {
+            // Cria um card "placeholder" que o processarEstado vai atualizar ou manter
+            // Precisamos criar porque o "pegarMateriasNoBoard" lê o DOM.
+            const card = document.createElement('div');
+            card.className = 'materia-card';
+            card.id = 'card-' + cod;
+            card.dataset.codigo = cod;
+            // Preenche com dados mínimos para não quebrar
+            card.innerHTML = `<span class="card-code">${cod}</span>...carregando...`; 
+            contentDiv.appendChild(card);
+        });
+    });
 }
 
 // Fechando dropdowns ao clicar fora
