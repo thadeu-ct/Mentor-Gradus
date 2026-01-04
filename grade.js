@@ -80,42 +80,49 @@ function gerarBlocosDeCreditos(listaCodigos) {
     container.innerHTML = ''; // Limpa a lista
 
     listaCodigos.forEach(codigo => {
-        // Busca os dados da matéria no cache global
         const materia = window.dadosMaterias.find(m => m.codigo === codigo);
         if (!materia) return; 
 
-        const creditos = materia.creditos || 2; 
-        
-        // Cria UM card para cada crédito
-        for (let i = 1; i <= creditos; i++) {
+        let creditosRestantes = materia.creditos || 2; 
+        let contadorBloco = 1;
+
+        // Enquanto houver créditos para distribuir...
+        while (creditosRestantes > 0) {
+            // Regra: Tenta pegar um bloco de 2h. Se só sobrar 1h, pega 1h.
+            const tamanhoBloco = (creditosRestantes >= 2) ? 2 : 1;
+            
             const bloco = document.createElement('div');
-            
-            // Reutiliza classes do pool para layout + classe específica da grade
             bloco.className = 'grade-card pool-item'; 
-            
-            // --- ATUALIZAÇÃO: REMOVIDOS ESTILOS MANUAIS ---
-            // Deixamos o style.css controlar tudo para ficar bonito e consistente.
-            // Apenas definimos o cursor para garantir a usabilidade.
             bloco.style.cursor = "grab";
-            
-            // Configuração Drag & Drop
             bloco.draggable = true;
             bloco.dataset.codigoOriginal = materia.codigo;
-            bloco.id = `grade-block-${materia.codigo}-${i}`; 
+            bloco.dataset.tamanho = tamanhoBloco; // Guarda o tamanho (útil para validação futura)
+            bloco.id = `grade-block-${materia.codigo}-${contadorBloco}`; 
 
-            // --- ATUALIZAÇÃO: HTML INTERNO REFINADO ---
-            // Usa as classes do CSS novo para alinhar (Código na esq, Badge na dir)
+            // Define texto da badge (ex: "2h" ou "1h") para ficar claro
+            const badgeTexto = `${tamanhoBloco}h`;
+
             bloco.innerHTML = `
                 <div class="grade-card-header">
                     <strong>${materia.codigo}</strong>
-                    <span class="credit-badge">${i}/${creditos}</span>
+                    <span class="credit-badge">${badgeTexto}</span>
                 </div>
                 <div class="grade-card-name" title="${materia.nome}">
                     ${materia.nome}
                 </div>
             `;
 
+            // Ajusta altura visual proporcional (opcional, mas fica chique)
+            // Se for 1h, fica menorzinho. Se for 2h, tamanho padrão.
+            if (tamanhoBloco === 1) {
+                bloco.style.minHeight = "40px"; // Metade da altura visual
+                bloco.style.borderLeftColor = "#f39c12"; // Cor diferente para destacar blocos quebrados? (Opcional)
+            }
+
             container.appendChild(bloco);
+
+            creditosRestantes -= tamanhoBloco;
+            contadorBloco++;
         }
     });
 }
