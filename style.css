@@ -1415,104 +1415,121 @@ h1 {
 }
 
 /* ======================================= */
-/* 🎫  ESTILOS DOS CARDS (POST-ITS)        */
+/* 🎫  ESTILOS DOS CARDS (ESTILO PLANNER)  */
 /* ======================================= */
-/* Ajustes finos no Card da Grade */
+
 .grade-card {
-    box-sizing: border-box; /* Garante que padding não estoure a altura */
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Removemos a borda esquerda para usar a barra superior */
+    border: 1px solid #e0e0e0; 
+    margin: 0 !important; /* Na grade, sem margem */
+    cursor: grab;
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Centraliza o conteúdo verticalmente */
-    margin: 0 !important; /* Remove margens externas para colar um no outro */
-    border-radius: 0; /* Opcional: deixa quadrado para parecer bloco de tempo */
-    border-bottom: 1px solid white; /* Separador sutil entre blocos empilhados */
-}
-/* Estilo específico para o bloco pequeno (1h) */
-.grade-card-small .grade-card-name {
-    display: none; /* Esconde o nome longo se for bloco de 1h (só cabe o código) */
+    box-sizing: border-box;
 }
 
-.grade-card-small .grade-card-header {
-    margin-bottom: 0; /* Remove margem extra */
+/* A Barra Colorida no Topo (Igual ao Planner) */
+.grade-card-bar {
+    height: 6px;
+    width: 100%;
+    background-color: #1abc9c; /* Cor padrão (Verde) */
+    flex-shrink: 0;
 }
 
-#pool-list-container .grade-card {
-    height: auto !important;
-    min-height: 40px;
-    margin-bottom: 8px !important; /* Devolve a margem no pool */
-    border-radius: 6px; /* Devolve a borda redonda no pool */
-}
-#pool-list-container .grade-card-small .grade-card-name {
-    display: block; /* Mostra o nome no pool, onde tem espaço */
+/* O Conteúdo do Card */
+.grade-card-content {
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center; /* Centraliza verticalmente */
+    min-width: 0; /* Evita quebra de layout com texto longo */
 }
 
-/* Hover: Leve subida */
+/* Código da Matéria (Fonte Monospace igual Planner) */
+.grade-card-code {
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-weight: 700;
+    color: #95a5a6; /* Cinza do código */
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Nome da Matéria */
+.grade-card-name {
+    color: #2c3e50; /* Azul escuro do título */
+    font-weight: 700;
+    font-size: 0.75rem;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* O Chip de Horas (2h) */
+.grade-card-chip {
+    background-color: #e0f7fa;
+    color: #007bff;
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+/* --- Estados e Ajustes --- */
+
 .grade-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     z-index: 10;
 }
 
 .grade-card:active {
     cursor: grabbing;
-    transform: scale(0.98);
 }
 
-/* Layout Interno do Card */
-.grade-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3px;
+/* Ajuste específico para bloco pequeno (1h) */
+.grade-card-small .grade-card-name {
+    display: none; /* Esconde nome se for pequeno */
+}
+.grade-card-small .grade-card-content {
+    justify-content: flex-start;
+    padding-top: 4px;
 }
 
-/* Código da Matéria */
-.grade-card strong {
-    color: #2c3e50;
-    font-weight: 800;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 0.8rem;
+/* --- Cores Específicas (Opcional) --- */
+.grade-card.obrigatoria .grade-card-bar { background-color: #3498db; } /* Azul */
+.grade-card.optativa .grade-card-bar { background-color: #f39c12; }    /* Laranja */
+
+
+/* --- AJUSTE PARA O POOL (Barra Lateral) --- */
+#pool-list-container .grade-card {
+    height: auto !important;
+    min-height: 50px !important;
+    margin: 8px 12px !important;
+    border-radius: 6px !important;
+    display: flex !important;
 }
 
-/* Nome da Matéria */
-.grade-card-name {
-    color: #555;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.7rem;
-    line-height: 1.2;
+#pool-list-container .grade-card-small .grade-card-name {
+    display: block !important; /* Mostra nome no pool */
+    white-space: normal; /* Quebra linha no pool */
 }
 
-/* Badge de Créditos (A pílula "1/4") */
-.credit-badge {
-    background-color: #f0f2f5;
-    color: #7f8c8d;
-    font-size: 0.65rem;
-    padding: 1px 6px;
-    border-radius: 10px;
-    font-weight: 700;
-    border: 1px solid #e0e0e0;
-}
-
-/* Ajuste específico para quando o card está na GRADE (Dropzone) */
+/* --- AJUSTE PARA A GRADE (Tabela) --- */
 .grid-dropzone .grade-card {
-    margin: 0;
-    width: 100%; /* Ocupa a largura da célula */
-    box-sizing: border-box;
-}
-
-/* Ajuste específico para quando o card está no ONLINE */
-#online-dropzone .grade-card {
-    width: 140px; /* Tamanho fixo para ficar organizado */
-}
-
-/* --- Cores Específicas (Opcional - Se quiser diferenciar Obrigatória/Optativa) --- */
-.grade-card.obrigatoria {
-    border-left-color: #3498db; /* Azul */
-}
-.grade-card.optativa {
-    border-left-color: #f39c12; /* Laranja */
+    width: 94% !important;
+    margin: 0 auto !important;
+    border-radius: 4px;
 }
 
 
