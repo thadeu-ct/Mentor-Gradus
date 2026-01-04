@@ -1405,3 +1405,55 @@ h1 {
 .pool-item-lock-icon {
     color: #c0392b; /* Cadeado vermelho para chamar atenção */
 }
+
+/* --- Estilo dos Bloquinhos da Grade (Pool e Grid) --- */
+.grade-card {
+    background-color: white;
+    border-radius: 6px; /* Mais arredondado */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 5px solid #1abc9c; /* Cor padrão */
+    padding: 6px 10px;
+    margin: 6px 0;
+    cursor: grab;
+    transition: transform 0.1s, box-shadow 0.1s;
+    font-size: 0.8rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.grade-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.grade-card:active {
+    cursor: grabbing;
+}
+
+.grade-card strong {
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* Indicador de Créditos (ex: 1/4) */
+.grade-card .credit-badge {
+    background-color: #f0f0f0;
+    color: #7f8c8d;
+    font-size: 0.7em;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+    float: right;
+}
+
+/* Estilo quando está dentro da tabela (Grid) */
+.grid-dropzone .grade-card {
+    margin: 0;
+    height: 100%; /* Ocupa a célula toda */
+    border-radius: 4px;
+    box-shadow: none;
+    border: none; /* Remove borda lateral pra caber melhor */
+    border-top: 3px solid #1abc9c; /* Borda vai pro topo */
+    background-color: #e8f8f5; /* Fundo levemente colorido */
+}

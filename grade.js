@@ -108,14 +108,15 @@ function gerarBlocosDeCreditos(listaCodigos) {
             bloco.id = `grade-block-${materia.codigo}-${i}`; 
 
             bloco.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="color:#333;">${materia.codigo}</strong>
-                    <span style="font-size:0.7em; color:#888; font-weight:bold; background:#eee; padding:1px 4px; border-radius:4px;">${i}/${creditos}</span>
+                <div style="margin-bottom: 2px;">
+                    <span class="credit-badge">${i}/${creditos}</span>
+                    <strong>${materia.codigo}</strong>
                 </div>
-                <div style="font-size:0.75em; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">
+                <div style="color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                     ${materia.nome}
                 </div>
             `;
+            
 
             container.appendChild(bloco);
         }

@@ -77,32 +77,28 @@ function inicializarPaginaPlanner() {
     });
 }
 
-// Busca os dados JSON do servidor (Python)
+// Busca os dados JSON do servidor (Python ou Arquivos Estáticos)
 async function carregarDadosIniciais() {
     try {
-        // console.log("Baixando dados do servidor...");
-
-        // Faz 3 pedidos ao servidos, dados formações, dominios e optativas junto
-        const [formacoes, dominios, optativas] = await Promise.all([ // capta um a um e aloca separadamente
-            fetch('/api/get-dados-formacoes').then(resposta => resposta.json()),
-            fetch('/api/get-dados-dominios').then(resposta => resposta.json()),
-            fetch('/api/get-dados-optativas').then(resposta => resposta.json()) 
+        // Agora carregamos TAMBÉM o catálogo completo de matérias (materias.json)
+        const [formacoes, dominios, optativas, materias] = await Promise.all([
+            fetch('/api/get-dados-formacoes').then(r => r.json()),
+            fetch('/api/get-dados-dominios').then(r => r.json()),
+            fetch('/api/get-dados-optativas').then(r => r.json()),
+            fetch('materias.json').then(r => r.json()) // <--- O PULO DO GATO 🐈
         ]);
 
-        // Guarda nas variáveis globais os dados pedidos acima
         window.dadosFormacoes = formacoes;
         window.dadosDominios = dominios;
-        window.dadosOptativas = optativas; 
+        window.dadosOptativas = optativas;
+        window.dadosMaterias = materias; // Agora a Grade Horária sabe quem é quem!
 
-        // Preenche as opções suspensas da barra lateral
         popularDropdown('#formacoes-options', Object.keys(formacoes));
         popularDropdown('#dominios-options', Object.keys(dominios));
-        
-        // console.log("Dados carregados com sucesso. Optativas disponíveis:", Object.keys(optativas).length);
 
     } catch (erro) {
         console.error("Erro fatal carregando dados:", erro);
-        alert("Erro ao conectar com o servidor. Verifique se o Python está rodando.");
+        alert("Erro ao carregar dados. Verifique se o 'materias.json' está na pasta correta.");
     }
 }
 
