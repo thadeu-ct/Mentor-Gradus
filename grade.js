@@ -90,33 +90,30 @@ function gerarBlocosDeCreditos(listaCodigos) {
         for (let i = 1; i <= creditos; i++) {
             const bloco = document.createElement('div');
             
-            // Reutiliza classes do pool para layout
+            // Reutiliza classes do pool para layout + classe específica da grade
             bloco.className = 'grade-card pool-item'; 
             
-            // Estilo visual do bloquinho
-            bloco.style.padding = "6px 8px";
-            bloco.style.margin = "4px 0";
+            // --- ATUALIZAÇÃO: REMOVIDOS ESTILOS MANUAIS ---
+            // Deixamos o style.css controlar tudo para ficar bonito e consistente.
+            // Apenas definimos o cursor para garantir a usabilidade.
             bloco.style.cursor = "grab";
-            bloco.style.borderLeft = "4px solid #1abc9c"; 
-            bloco.style.backgroundColor = "white";
-            bloco.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
-            bloco.style.fontSize = "0.8rem";
             
             // Configuração Drag & Drop
             bloco.draggable = true;
             bloco.dataset.codigoOriginal = materia.codigo;
             bloco.id = `grade-block-${materia.codigo}-${i}`; 
 
+            // --- ATUALIZAÇÃO: HTML INTERNO REFINADO ---
+            // Usa as classes do CSS novo para alinhar (Código na esq, Badge na dir)
             bloco.innerHTML = `
-                <div style="margin-bottom: 2px;">
-                    <span class="credit-badge">${i}/${creditos}</span>
+                <div class="grade-card-header">
                     <strong>${materia.codigo}</strong>
+                    <span class="credit-badge">${i}/${creditos}</span>
                 </div>
-                <div style="color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <div class="grade-card-name" title="${materia.nome}">
                     ${materia.nome}
                 </div>
             `;
-            
 
             container.appendChild(bloco);
         }

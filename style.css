@@ -32,6 +32,7 @@ h1 {
     color: #333;
 }
 
+
 /* ===================== */
 /*        HEADER         */
 /* ===================== */
@@ -58,12 +59,14 @@ h1 {
     font-size: 1.5rem;
     font-weight: bold;
 }
+
 .nav-button {
     background-color: #1abc9c;
     padding: 0.5rem 1rem;
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
+
 .nav-button:hover {
     background-color: #16a085;
 }
@@ -104,6 +107,7 @@ h1 {
     font-weight: 500;
     transition: background-color 0.3s ease;
 }
+
 .nav-link-button:hover {
     background-color: #16a085;
 }
@@ -117,20 +121,24 @@ h1 {
     padding: 0;
     width: 100%;
 }
+
 .hero {
     background-color: #2c3e50;
     color: white;
     padding: 4rem 2rem;
     text-align: center;
 }
+
 .hero h1 {
     margin-top: 0;
     font-size: 2.5rem;
 }
+
 .hero p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
 }
+
 .cta-button {
     background-color: #1abc9c;
     color: white;
@@ -141,9 +149,11 @@ h1 {
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
+
 .cta-button:hover {
     background-color: #16a085;
 }
+
 .features {
     max-width: 1200px;
     margin: 2rem auto;
@@ -153,6 +163,7 @@ h1 {
     gap: 1rem;
     flex-wrap: wrap;
 }
+
 .feature-item {
     background-color: white;
     border-radius: 8px;
@@ -161,15 +172,16 @@ h1 {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     text-align: center;
 }
+
 .feature-item h3 {
     color: #2c3e50;
     margin-top: 0;
 }
 
+
 /* ===================== */
 /*        SIDEBAR        */
 /* ===================== */
-
 .sidebar {
     position: fixed; 
     left: 0;
@@ -190,6 +202,7 @@ h1 {
     width: 80px;
     padding: 1.5rem 0.5rem;
 }
+
 .sidebar.recolhido .sidebar-content {
     display: none;
 }
@@ -227,6 +240,7 @@ h1 {
 .sidebar.recolhido .sidebar-toggle .fa-bars {
     display: block;
 }
+
 .sidebar.recolhido .sidebar-toggle .fa-chevron-left {
     display: none;
 }
@@ -240,12 +254,14 @@ h1 {
 .menu-section {
     margin-top: 2rem;
 }
+
 .menu-section h3 {
     font-size: 0.9rem;
     text-transform: uppercase;
     color: #888;
     margin-bottom: 0.5rem;
 }
+
 .selection-area {
     border: 1px solid #ccc;
     border-radius: 20px;
@@ -256,6 +272,7 @@ h1 {
     flex-wrap: wrap;
     gap: 5px;
 }
+
 .chip-selected {
     background-color: #1abc9c;
     color: white;
@@ -266,20 +283,24 @@ h1 {
     align-items: center;
     gap: 8px;
 }
+
 .chip-selected i.fa-times {
     font-size: 12px;
     cursor: pointer;
     display: none;
 }
+
 .selection-area.edit-mode i.fa-times {
     display: inline-block;
 }
+
 .chip-indicador {
     background-color: #e0e0e0;
     border-radius: 15px;
     padding: 5px 12px;
     font-size: 14px;
 }
+
 .options-dropdown {
     display: none; 
     background-color: white;
@@ -292,9 +313,11 @@ h1 {
     width: 240px;
     z-index: 110;
 }
+
 .options-dropdown.dropdown-open {
     display: block;
 }
+
 .options-dropdown .chip {
     background-color: #f0f0f0;
     border-radius: 15px;
@@ -304,9 +327,11 @@ h1 {
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
 }
+
 .options-dropdown .chip:hover {
     background-color: #e0e0e0;
 }
+
 .options-dropdown .chip.disabled {
     background-color: #fafafa;
     color: #bbb;
@@ -314,10 +339,10 @@ h1 {
     text-decoration: line-through;
 }
 
+
 /* =================== */
 /*       PLANNER       */
 /* =================== */
-
 .planner-board {
     flex: 1; 
     overflow-x: auto; 
@@ -474,6 +499,7 @@ h1 {
     color: #2c3e50;
     margin-top: 4px;
 }
+
 .card-chip {
     display: inline-block;
     font-size: 12px;
@@ -483,51 +509,60 @@ h1 {
     margin-right: 5px;
     margin-bottom: 8px;
 }
+
 .card-chip.status-andamento {
     background-color: #fff3e0;
     color: #ef6c00;
 }
+
 .card-chip.creditos {
     background-color: #e0f7fa;
     color: #007bff;
     flex-shrink: 0;
     margin: 0;
 }
+
 .card-chip.prereq {
     background-color: #fbe9e7;
     color: #d32f2f;
 }
+
 .card-prereqs {
     margin-top: 10px;
     font-size: 14px;
 }
+
 .card-prereqs strong {
     display: block;
     margin-bottom: 5px;
     color: #555;
 }
+
 .card-footer {
     background-color: #f9f9f9;
     padding: 10px 15px;
     border-top: 1px solid #f0f0f0;
 }
+
 .category-tag {
     font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
 .category-tag.obrigatoria {
     color: #c0392b;
 }
+
 .category-tag.optativa {
     color: #27ae60;
 }
 
+
 /* ========================== */
 /*      POOL DE MATÉRIAS      */
 /* ========================== */
-
 .materia-pool {
     position: fixed;
     right: 0;
@@ -557,6 +592,7 @@ h1 {
     padding: 5px; 
     transition: color 0.2s ease, transform 0.3s ease, left 0.3s ease;
 }
+
 .materia-pool-toggle:hover {
     color: #1abc9c;
 }
@@ -564,6 +600,7 @@ h1 {
 .materia-pool-toggle .fa-bars {
     display: none;
 }
+
 .materia-pool-toggle .fa-chevron-right {
     display: block;
 }
@@ -572,16 +609,20 @@ h1 {
     width: 80px;
     padding: 1.5rem 0.5rem;
 }
+
 .materia-pool.pool-recolhido .pool-content {
     display: none;
 }
+
 .materia-pool.pool-recolhido .materia-pool-toggle {
     left: 50%;
     transform: translateX(-50%);
 }
+
 .materia-pool.pool-recolhido .materia-pool-toggle .fa-bars {
     display: block;
 }
+
 .materia-pool.pool-recolhido .materia-pool-toggle .fa-chevron-right {
     display: none;
 }
@@ -766,6 +807,7 @@ h1 {
     color: #555;
 }
 
+
 /* ===================== */
 /*     DRAG AND DROP     */
 /* ===================== */
@@ -838,6 +880,7 @@ h1 {
     justify-content: center;
     align-items: center;
 }
+
 .social-menu ul {
     list-style: none;
     padding: 0;
@@ -846,14 +889,17 @@ h1 {
     justify-content: center;
     gap: 20px;
 }
+
 .social-menu ul li a {
     color: white;
     font-size: 20px;
     transition: color 0.3s ease;
 }
+
 .social-menu ul li a:hover {
     color: #1abc9c;
 }
+
 .copyright {
     margin: 0;
     font-size: 12px;
@@ -864,8 +910,6 @@ h1 {
 /* ================================================= */
 /* --- INÍCIO DOS NOVOS ESTILOS (MODAL E POOL) --- */
 /* ================================================= */
-
-/* --- Estilos do Modal (NOVOS) --- */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -877,10 +921,10 @@ h1 {
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
 }
+
 .modal-backdrop.escondido {
     opacity: 0;
     pointer-events: none;
-    /* Usa 'display: none' para garantir que não seja clicável */
     display: none !important; 
 }
 
@@ -898,6 +942,7 @@ h1 {
     opacity: 1;
     transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
+
 .modal-container.escondido {
     opacity: 0;
     transform: translate(-50%, -45%);
@@ -913,10 +958,12 @@ h1 {
     padding: 16px 24px;
     border-bottom: 1px solid #eee;
 }
+
 .modal-header h3 {
     margin: 0;
     font-size: 1.25rem;
 }
+
 .modal-fechar-btn {
     background: none;
     border: none;
@@ -924,15 +971,18 @@ h1 {
     cursor: pointer;
     color: #888;
 }
+
 .modal-body {
     padding: 24px;
 }
+
 #modal-descricao {
     font-size: 0.9rem;
     color: #555;
     margin-top: 0;
     margin-bottom: 16px;
 }
+
 #modal-lista-opcoes {
     display: flex;
     flex-direction: column;
@@ -940,6 +990,7 @@ h1 {
     max-height: 300px;
     overflow-y: auto;
 }
+
 .modal-opcao-btn {
     display: flex;
     justify-content: space-between;
@@ -953,26 +1004,26 @@ h1 {
     text-align: left;
     font-size: 0.9rem;
 }
+
 .modal-opcao-btn:hover {
     background-color: #f0f0f0;
     border-color: #ccc;
 }
+
 .modal-opcao-nome {
     font-weight: 600;
 }
+
 .modal-opcao-cred {
     font-weight: 600;
     color: #3498db;
 }
 
-/* Garante que 'escondido' sempre funcione */
 .escondido {
     display: none !important;
 }
 
-/* --- Estilos do Pool (ATUALIZADOS) --- */
 
-/* Atualiza o item de matéria arrastável */
 .pool-item {
     padding: 10px 1.5rem; /* Aumenta padding lateral */
     border-bottom: 1px solid #f0f0f0; /* Borda mais suave */
@@ -985,19 +1036,10 @@ h1 {
     background-color: #f5f5f5;
     text-decoration: line-through;
     cursor: not-allowed;
-    /* Garante que ele ainda ocupe espaço mas não seja interativo */
     display: flex !important; 
     pointer-events: none;
 }
-/* Esconde o item 'in-board' se você preferir */
-/* .pool-item.in-board {
-    display: none !important;
-} */
 
-/* Alinha os ícones e códigos */
-/* REMOVIDO CONFLITO */
-
-/* Novo item de GRUPO (clicável) */
 .pool-item-grupo {
     display: flex;
     align-items: center;
@@ -1008,10 +1050,8 @@ h1 {
     transition: background-color 0.2s;
 }
 .pool-item-grupo:hover {
-    background-color: #fdf8e9; /* Um hover sutil */
+    background-color: #fdf8e9;
 }
-
-/* REMOVIDO CONFLITO */
 
 .pool-item-grupo .pool-item-title {
     flex-grow: 1;
@@ -1028,61 +1068,47 @@ h1 {
     font-weight: 600;
 }
 
-/* Tags de Ícone */
-/* REMOVIDO CONFLITO */
-
-/* ======================================= */
-/* --- NOVOS Estilos de Fundo do Pool ---  */
-/* ======================================= */
-
-/* 1. Esconde as cores dos ícones de status antigos (legado) */
 .tag-pendente,
 .tag-obrigatoria,
 .tag-optativa {
     display: none;
 }
 
-/* 2. Remove o estilo genérico dos ícones de status antigos */
 .pool-item i {
     min-width: auto;
     margin-right: 0;
     text-align: left;
 }
 
-/* 3. Fundo para OBRIGATÓRIA (Azul) */
 .pool-item-obrigatoria {
-    background-color: #eaf6ff; /* Azul bem claro */
+    background-color: #eaf6ff;
 }
 .pool-item-obrigatoria:hover {
-    background-color: #dcedff; /* Azul um pouco mais escuro */
+    background-color: #dcedff;
 }
 .pool-item-obrigatoria.expanded {
     background-color: #dcedff;
 }
 
-/* 4. Fundo para OPTATIVA (Laranja/Amarelo) */
 .pool-item-optativa {
-    background-color: #fff8e1; /* Laranja/Amarelo bem claro */
+    background-color: #fff8e1;
 }
 .pool-item-optativa:hover {
-    background-color: #fff0c2; /* Laranja/Amarelo um pouco mais escuro */
+    background-color: #fff0c2;
 }
 .pool-item-optativa.expanded {
     background-color: #fff0c2;
 }
 
-/* 5. Fundo para GRUPO PENDENTE (Amarelo sutil) */
 .pool-item-grupo {
-    /* (Ele já tem esse hover do código anterior, vamos adicionar um fundo base) */
-    background-color: #fdf8e9; /* Um amarelo sutil */
+    background-color: #fdf8e9;
 }
 .pool-item-grupo:hover {
     background-color: #fbf0d0;
 }
 
-/* 6. Remove a cor de fundo genérica de 'expanded' */
 .pool-item.expanded {
-    background-color: transparent; /* Deixa as cores específicas acima controlarem */
+    background-color: transparent;
     cursor: default; 
 }
 .pool-item.expanded:hover {
@@ -1267,45 +1293,210 @@ h1 {
 }
 
 /* ======================================= */
-/* --- NOVOS Estilos dos Cards da Grade ---  */
+/* 📅  ESTILOS MODERNOS DA GRADE HORÁRIA   */
 /* ======================================= */
 
-.grade-card {
-    border-radius: 4px;
-    padding: 6px 8px;
-    margin-bottom: 5px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    cursor: grab;
-    border-left: 5px solid; /* Borda de cor */
+/* 1. Container Principal da Grade */
+#grade-grid-container {
+    overflow-y: auto; 
+    max-height: calc(100vh - 9rem); /* Ajuste fino para caber na tela */
+    background-color: #ffffff;
+    border-radius: 8px; /* Cantos arredondados na tabela inteira */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra suave de papel */
+    border: 1px solid #e0e0e0;
+    margin-bottom: 20px;
 }
+
+/* 2. Definição da Grade (Grid Layout) */
+#grade-grid {
+    display: grid;
+    /* Coluna de horário menor (0.6fr), dias da semana iguais (1fr) */
+    grid-template-columns: 80px repeat(5, 1fr); 
+    background-color: #e0e0e0; /* Cor das linhas da grade (gap) */
+    gap: 1px; /* Cria as linhas divisórias perfeitas */
+}
+
+/* 3. Célula Padrão (Fundo Branco) */
+.grid-cell {
+    background-color: #fff;
+    padding: 4px;
+    font-size: 13px;
+    position: relative;
+}
+
+/* 4. Cabeçalho (Seg, Ter, Qua...) */
+.grid-header {
+    background-color: #2c3e50; /* Azul escuro */
+    color: #ecf0f1;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+    padding: 10px 5px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 5. Célula de Horário (Coluna da Esquerda) */
+.grid-time {
+    background-color: #f8f9fa;
+    color: #7f8c8d;
+    font-weight: 700;
+    font-size: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
+    border-right: 2px solid #e0e0e0; /* Separação visual dos horários */
+}
+
+/* 6. Zona de Drop (Onde solta os cards) */
+.grid-dropzone {
+    min-height: 80px; /* Altura fixa para ficar bonito */
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Espaço entre cards na mesma célula */
+}
+
+/* Efeito visual quando arrasta por cima */
+.grid-dropzone.drag-over {
+    background-color: #e8f6f3 !important; /* Verde bem clarinho */
+    box-shadow: inset 0 0 0 2px #1abc9c; /* Borda interna verde */
+}
+
+.grid-dropzone.drag-invalid {
+     background-color: #fdedec !important;
+     box-shadow: inset 0 0 0 2px #e74c3c;
+}
+
+/* 7. Linha "Online" */
+#grade-online-row {
+    display: grid;
+    grid-template-columns: 80px 1fr; /* Mesma largura da coluna de horário */
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+
+#grade-online-row .online-header {
+    background-color: #34495e;
+    color: white;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+#grade-online-row #online-dropzone {
+    padding: 8px; 
+    min-height: 70px;
+    background-color: #fafafa;
+    display: flex;
+    flex-wrap: wrap; /* Permite vários itens lado a lado */
+    gap: 8px;
+}
+
+/* ======================================= */
+/* 🎫  ESTILOS DOS CARDS (POST-ITS)        */
+/* ======================================= */
+
+/* Estilo Base do Card na Grade */
+.grade-card {
+    background-color: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08); /* Sombra suave */
+    border-left: 5px solid #1abc9c; /* Cor padrão (Verde Mentor) */
+    padding: 6px 8px;
+    cursor: grab;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s;
+    font-size: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    border: 1px solid #eee; /* Borda sutil em volta */
+    border-left-width: 5px; /* Reforça a lateral */
+}
+
+/* Hover: Leve subida */
+.grade-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    z-index: 10;
+}
+
 .grade-card:active {
     cursor: grabbing;
+    transform: scale(0.98);
 }
 
-/* Cor de fundo baseada na classe */
+/* Layout Interno do Card */
+.grade-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+/* Código da Matéria */
+.grade-card strong {
+    color: #2c3e50;
+    font-weight: 800;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.8rem;
+}
+
+/* Nome da Matéria */
+.grade-card-name {
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.7rem;
+    line-height: 1.2;
+}
+
+/* Badge de Créditos (A pílula "1/4") */
+.credit-badge {
+    background-color: #f0f2f5;
+    color: #7f8c8d;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    border: 1px solid #e0e0e0;
+}
+
+/* Ajuste específico para quando o card está na GRADE (Dropzone) */
+.grid-dropzone .grade-card {
+    margin: 0;
+    width: 100%; /* Ocupa a largura da célula */
+    box-sizing: border-box;
+}
+
+/* Ajuste específico para quando o card está no ONLINE */
+#online-dropzone .grade-card {
+    width: 140px; /* Tamanho fixo para ficar organizado */
+}
+
+/* --- Cores Específicas (Opcional - Se quiser diferenciar Obrigatória/Optativa) --- */
 .grade-card.obrigatoria {
-    background-color: #eaf6ff; /* Fundo azul claro */
-    border-left-color: #3498db;  /* Borda azul */
+    border-left-color: #3498db; /* Azul */
 }
 .grade-card.optativa {
-    background-color: #fff8e1; /* Fundo laranja claro */
-    border-left-color: #f39c12;  /* Borda laranja */
+    border-left-color: #f39c12; /* Laranja */
 }
 
-.grade-card-code {
-    font-family: 'Menlo', 'Courier New', monospace;
-    font-size: 11px; /* Pequeno */
-    font-weight: bold;
-    color: #555;
-    display: block;
-}
-
-.grade-card-title {
-    font-size: 13px; /* Pequeno */
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 2px 0 0 0;
-}
 
 /* ===================== */
 /*    TELA DE GRAFO      */
@@ -1404,56 +1595,4 @@ h1 {
 
 .pool-item-lock-icon {
     color: #c0392b; /* Cadeado vermelho para chamar atenção */
-}
-
-/* --- Estilo dos Bloquinhos da Grade (Pool e Grid) --- */
-.grade-card {
-    background-color: white;
-    border-radius: 6px; /* Mais arredondado */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border-left: 5px solid #1abc9c; /* Cor padrão */
-    padding: 6px 10px;
-    margin: 6px 0;
-    cursor: grab;
-    transition: transform 0.1s, box-shadow 0.1s;
-    font-size: 0.8rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.grade-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.grade-card:active {
-    cursor: grabbing;
-}
-
-.grade-card strong {
-    color: #2c3e50;
-    display: block;
-    margin-bottom: 2px;
-}
-
-/* Indicador de Créditos (ex: 1/4) */
-.grade-card .credit-badge {
-    background-color: #f0f0f0;
-    color: #7f8c8d;
-    font-size: 0.7em;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-weight: bold;
-    float: right;
-}
-
-/* Estilo quando está dentro da tabela (Grid) */
-.grid-dropzone .grade-card {
-    margin: 0;
-    height: 100%; /* Ocupa a célula toda */
-    border-radius: 4px;
-    box-shadow: none;
-    border: none; /* Remove borda lateral pra caber melhor */
-    border-top: 3px solid #1abc9c; /* Borda vai pro topo */
-    background-color: #e8f8f5; /* Fundo levemente colorido */
 }
