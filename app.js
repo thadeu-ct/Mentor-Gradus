@@ -98,7 +98,7 @@ async function carregarDadosIniciais() {
 
     } catch (erro) {
         console.error("Erro fatal carregando dados:", erro);
-        alert("Erro ao carregar dados. Verifique se o 'materias.json' está na pasta correta. teste");
+        alert("Erro ao carregar dados. Verifique se o 'materias.json' está na pasta correta.");
     }
 }
 
