@@ -1199,131 +1199,31 @@ h1 {
     display: none;
 }
 
-/* ======================================= */
-/* --- NOVOS Estilos da Grade Horária ---  */
-/* ======================================= */
+/* ========================================================= */
+/* 📅  LAYOUT DA PÁGINA DE GRADE HORÁRIA                   */
+/* ========================================================= */
 
-/* 1. Container Principal da Grade */
+/* 1. Container Principal (Scrollável) */
 #grade-grid-container {
     overflow-y: auto; 
-    max-height: calc(100vh - 4.5rem - 3.5rem - 4rem - 70px); 
-    border: 1px solid #dfe3e6; /* Borda da cor das colunas do planner */
+    max-height: calc(100vh - 9rem); /* Ajuste para caber na tela sem scroll duplo */
     background-color: #ffffff;
-}
-
-/* 2. Definição da Grade de Horários (6 Colunas) */
-#grade-grid {
-    display: grid;
-    grid-template-columns: 0.8fr repeat(5, 2fr); 
-}
-
-/* 3. Célula Padrão */
-.grid-cell {
-    padding: 2px 4px; /* Reduzido de 4px 6px */
-    border-bottom: 1px solid #dfe3e6;
-    border-right: 1px solid #dfe3e6;
-    font-size: 12px; /* Reduzido de 13px */
-}
-
-/* 4. Cabeçalho (Seg, Ter, Qua...) */
-.grid-header {
-    background-color: #34495e; /* Azul escuro do header */
-    color: white;
-    font-weight: 600;
-    text-align: center;
-    position: sticky; /* Cola o cabeçalho no topo ao rolar */
-    top: 0;
-    z-index: 90;
-}
-
-/* 5. Célula de Horário (07:00, 08:00...) */
-.grid-time {
-    background-color: #f4f7f6;
-    font-weight: 600;
-    color: #34495e;
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center; /* Fallback */
-}
-
-/* 6. Célula de Drop (Onde os cards vão) */
-.grid-dropzone {
-    height: 80px; /* Altura fixa igual ao card de 2h */
-    min-height: 80px;
-    padding: 0; /* Remove padding para o card encostar nas bordas */
-    border-bottom: 1px solid #e0e0e0;
-    box-sizing: border-box; /* Importante para a borda não somar no tamanho */
-    
-    /* Centraliza se tiver só um card pequeno */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start; 
-}
-
-.grid-dropzone.drag-over {
-    background-color: rgba(0,0,0,0.1);
-    border: 2px dashed #1abc9c;
-}
-.grid-dropzone.drag-invalid {
-     background-color: #fbe9e7 !important;
-     border: 2px dashed #e74c3c !important;
-}
-
-/* 7. Linha "Online" (na parte de baixo) */
-#grade-online-row {
-    display: grid;
-    grid-template-columns: 0.8fr 10fr; 
-    margin-top: 1rem;
-    background-color: #ffffff;
-    border: 1px solid #dfe3e6;
     border-radius: 8px;
-    overflow: hidden;
-}
-
-#grade-online-row .online-header {
-    background-color: #34495e;
-    color: white;
-    font-weight: 600;
-    text-align: center;
-    padding: 6px; /* Reduzido de 12px */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#grade-online-row #online-dropzone {
-    padding: 4px; 
-    min-height: 60px;
-    background-color: rgba(0,0,0,0.03);
-}
-
-/* ======================================= */
-/* 📅  ESTILOS MODERNOS DA GRADE HORÁRIA   */
-/* ======================================= */
-
-/* 1. Container Principal da Grade */
-#grade-grid-container {
-    overflow-y: auto; 
-    max-height: calc(100vh - 9rem); /* Ajuste fino para caber na tela */
-    background-color: #ffffff;
-    border-radius: 8px; /* Cantos arredondados na tabela inteira */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra suave de papel */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     border: 1px solid #e0e0e0;
     margin-bottom: 20px;
 }
 
-/* 2. Definição da Grade (Grid Layout) */
+/* 2. Grid (Tabela) */
 #grade-grid {
     display: grid;
-    /* Coluna de horário menor (0.6fr), dias da semana iguais (1fr) */
+    /* Coluna de horário fixa (80px), dias da semana flexíveis (1fr) */
     grid-template-columns: 80px repeat(5, 1fr); 
-    background-color: #e0e0e0; /* Cor das linhas da grade (gap) */
-    gap: 1px; /* Cria as linhas divisórias perfeitas */
+    background-color: #e0e0e0; /* Cor das linhas divisórias (gap) */
+    gap: 1px; /* Espessura da linha */
 }
 
-/* 3. Célula Padrão (Fundo Branco) */
+/* 3. Células Base */
 .grid-cell {
     background-color: #fff;
     padding: 4px;
@@ -1331,9 +1231,9 @@ h1 {
     position: relative;
 }
 
-/* 4. Cabeçalho (Seg, Ter, Qua...) */
+/* 4. Cabeçalhos (Segunda, Terça...) */
 .grid-header {
-    background-color: #2c3e50; /* Azul escuro */
+    background-color: #2c3e50;
     color: #ecf0f1;
     font-weight: 700;
     text-transform: uppercase;
@@ -1341,13 +1241,13 @@ h1 {
     letter-spacing: 0.5px;
     text-align: center;
     padding: 10px 5px;
-    position: sticky;
+    position: sticky; /* Fixa no topo ao rolar */
     top: 0;
     z-index: 50;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* 5. Célula de Horário (Coluna da Esquerda) */
+/* 5. Coluna de Horários (Esquerda) */
 .grid-time {
     background-color: #f8f9fa;
     color: #7f8c8d;
@@ -1359,33 +1259,35 @@ h1 {
     justify-content: center;
     text-align: center;
     line-height: 1.2;
-    border-right: 2px solid #e0e0e0; /* Separação visual dos horários */
 }
 
-/* 6. Zona de Drop (Onde solta os cards) */
+/* ========================================================= */
+/* 📥  ÁREAS DE DROP (Células e Online)                    */
+/* ========================================================= */
+
+/* 1. Células da Grade (Slots de Horário) */
 .grid-dropzone {
-    min-height: 80px; /* Altura fixa para ficar bonito */
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 80px; /* Altura visual mínima */
+    transition: background-color 0.2s ease;
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Espaço entre cards na mesma célula */
+    gap: 0; /* Cards colados uns nos outros */
 }
 
-/* Efeito visual quando arrasta por cima */
+/* Feedback visual ao arrastar por cima */
 .grid-dropzone.drag-over {
-    background-color: #e8f6f3 !important; /* Verde bem clarinho */
-    box-shadow: inset 0 0 0 2px #1abc9c; /* Borda interna verde */
+    background-color: #e8f6f3 !important; /* Verde claro */
+    box-shadow: inset 0 0 0 2px #1abc9c;
 }
-
 .grid-dropzone.drag-invalid {
-     background-color: #fdedec !important;
+     background-color: #fdedec !important; /* Vermelho claro */
      box-shadow: inset 0 0 0 2px #e74c3c;
 }
 
-/* 7. Linha "Online" */
+/* 2. Linha de Matérias Online */
 #grade-online-row {
     display: grid;
-    grid-template-columns: 80px 1fr; /* Mesma largura da coluna de horário */
+    grid-template-columns: 80px 1fr; /* Alinha com a grade acima */
     background-color: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -1409,119 +1311,50 @@ h1 {
     padding: 8px; 
     min-height: 70px;
     background-color: #fafafa;
+    
+    /* Layout Flex para acomodar vários cards lado a lado */
     display: flex;
-    flex-wrap: wrap; /* Permite vários itens lado a lado */
+    flex-wrap: wrap;
     gap: 8px;
-}
-
-/* ========================================================= */
-/* 🛠️ CORREÇÃO DEFINITIVA: 1H, POOL E ONLINE 🛠️ */
-/* ========================================================= */
-
-/* --- 1. AJUSTES GERAIS DO CARD --- */
-.grade-card {
-    height: auto; /* Altura automática por padrão (Pool e Online) */
-    min-height: 50px;
-}
-
-/* --- 2. CONTEXTO: POOL (Sidebar) --- */
-#pool-list-container .grade-card {
-    margin: 8px 12px !important;
-    display: flex !important;
-}
-/* No Pool, o card pequeno (1h) se comporta como um card normal */
-#pool-list-container .grade-card-small .grade-card-name {
-    display: block !important; /* Mostra o nome */
-}
-#pool-list-container .grade-card-small .grade-card-content {
-    padding-top: 6px; /* Padding normal */
-}
-
-
-/* --- 3. CONTEXTO: GRADE (Células de Horário) --- */
-/* Apenas dentro das células de horário o comportamento muda */
-#grade-grid .grid-dropzone .grade-card {
-    border-radius: 4px;
-    width: 94% !important;
-    margin: 0 auto !important;
-    height: 80px; /* Padrão 2h preenche a célula */
-}
-
-/* O Bloco de 1h DENTRO DA GRADE fica pequeno e sem nome */
-#grade-grid .grid-dropzone .grade-card.grade-card-small {
-    height: 40px !important; /* Metade da altura */
-    min-height: 0 !important;
-}
-#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-name {
-    display: none; /* Esconde nome apenas aqui */
-}
-#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-content {
-    justify-content: center;
-    padding-top: 0;
-}
-
-
-/* --- 4. CONTEXTO: LINHA ONLINE (Correção do Sumiço) --- */
-/* Removemos as restrições da classe .grid-dropzone para a área Online */
-#grade-online-row #online-dropzone {
-    height: auto !important; /* Altura cresce conforme coloca cards */
-    min-height: 80px;
-    display: flex;
-    flex-direction: row; /* Cards lado a lado */
-    flex-wrap: wrap; /* Quebra linha se encher */
-    gap: 10px;
-    padding: 10px;
     align-items: flex-start;
+    height: auto !important; /* Cresce conforme necessário */
 }
 
-/* Os cards no Online devem parecer com os do Pool (Completos) */
-#online-dropzone .grade-card {
-    width: 140px !important; /* Largura fixa confortável */
-    height: auto !important; /* Altura ajustável ao conteúdo */
-    min-height: 50px;
-    margin: 0 !important;
-}
+/* ========================================================= */
+/* 🔘  SIDEBAR DE SELEÇÃO (Lista de Períodos)              */
+/* ========================================================= */
 
-/* Mesmo sendo 1h, no Online mostra o nome */
-#online-dropzone .grade-card-small .grade-card-name {
-    display: block !important; 
-}
-
-/* --- Sidebar da Grade em Lista Vertical --- */
-
-/* O Container agora é uma coluna vertical */
 #periodos-selection {
     display: flex;
-    flex-direction: column !important; /* Força coluna */
+    flex-direction: column !important; /* Força lista vertical */
     gap: 8px;
     padding: 10px;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* O Item da Lista (Antigo Chip) */
+/* Item da Lista (Botão do Período) */
 #periodos-selection .chip {
     display: flex;
-    justify-content: space-between; /* Joga texto para as pontas */
+    justify-content: space-between;
     align-items: center;
     width: 100%;
-    background-color: #fff; /* Fundo branco para destaque no cinza */
+    background-color: #fff;
     border: 1px solid #dfe3e6;
-    border-radius: 8px; /* Menos arredondado, mais "card" */
+    border-radius: 8px;
     padding: 12px 15px;
     box-sizing: border-box;
     transition: all 0.2s ease;
+    cursor: pointer;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* Hover no item */
 #periodos-selection .chip:hover {
     background-color: #f8f9fa;
     border-color: #1abc9c;
-    transform: translateX(4px); /* Efeito visual de "seleção" */
+    transform: translateX(4px);
 }
 
-/* Item Selecionado (Verde) */
 #periodos-selection .chip-selected {
     background-color: #1abc9c !important;
     color: white !important;
@@ -1529,25 +1362,117 @@ h1 {
     box-shadow: 0 4px 6px rgba(26, 188, 156, 0.3);
 }
 
-/* Texto do Nome (1º Período) */
-.period-name {
-    font-weight: 700;
-    font-size: 0.95rem;
+/* Tipografia Interna do Botão */
+.period-name { font-weight: 700; font-size: 0.95rem; }
+.period-info { font-size: 0.8rem; font-weight: 500; opacity: 0.7; }
+#periodos-selection .chip-selected .period-info { color: rgba(255,255,255,0.9); opacity: 1; }
+
+
+/* ========================================================= */
+/* 🎫  ESTILIZAÇÃO DOS CARDS (Contextual)                  */
+/* ========================================================= */
+
+/* --- 1. CONFIGURAÇÃO BASE (Comum a todos) --- */
+.grade-card {
+    background-color: white;
+    box-sizing: border-box;
+    cursor: grab;
+    transition: transform 0.1s;
+    position: relative;
+    overflow: hidden;
+    
+    /* Altura automática padrão (para o Pool e Online) */
+    height: auto; 
+    min-height: 50px;
 }
 
-/* Texto de Detalhes (7 Mat...) */
-.period-info {
-    font-size: 0.8rem;
-    font-weight: 500;
-    opacity: 0.7; /* Levemente transparente */
+/* --- 2. CONTEXTO: POOL (Lateral Direita) --- */
+/* Cards devem ser detalhados e legíveis */
+#pool-list-container .grade-card {
+    margin: 8px 12px !important;
+    display: flex !important;
+    flex-direction: column;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+/* Garante que o nome apareça mesmo nos blocos pequenos (1h) */
+#pool-list-container .grade-card-small .grade-card-name {
+    display: block !important;
+    white-space: normal;
 }
 
-/* Ajuste da cor do texto de detalhes quando selecionado */
-#periodos-selection .chip-selected .period-info {
-    color: rgba(255, 255, 255, 0.9);
-    opacity: 1;
+/* --- 3. CONTEXTO: ONLINE (Rodapé) --- */
+/* Cards devem ser compactos mas legíveis */
+#online-dropzone .grade-card {
+    width: 140px !important;
+    margin: 0 !important;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+#online-dropzone .grade-card-small .grade-card-name {
+    display: block !important; /* Mostra nome */
 }
 
+/* --- 4. CONTEXTO: GRADE (Células Centrais) --- */
+/* Layout limpo, centralizado e sem excessos */
+
+#grade-grid .grid-dropzone .grade-card {
+    width: 100% !important;
+    height: 100% !important; /* Ocupa a célula (80px) */
+    margin: 0 !important;
+    border-radius: 4px;
+    box-shadow: none; /* Flat design na grade */
+    border: 1px solid #ddd;
+    border-left-width: 5px; /* Mantém a cor lateral */
+}
+
+/* Ajuste para bloco pequeno (1h) na grade */
+#grade-grid .grid-dropzone .grade-card.grade-card-small {
+    height: 48% !important; /* Quase metade */
+    min-height: 0 !important;
+}
+
+/* Limpeza Visual Específica da Grade */
+#grade-grid .grid-dropzone .grade-card .grade-card-bar { display: none !important; } /* Remove topo colorido */
+#grade-grid .grid-dropzone .grade-card-chip { display: none !important; } /* Remove badge "2h" */
+
+/* Centralização do Conteúdo */
+#grade-grid .grid-dropzone .grade-card-content {
+    padding: 2px 4px !important;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#grade-grid .grid-dropzone .grade-card-code {
+    justify-content: center;
+    font-size: 0.85rem;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+/* Nome da Matéria (Permite quebra de linha para não vazar) */
+#grade-grid .grid-dropzone .grade-card-name {
+    display: block !important;
+    white-space: normal !important; /* Permite quebra */
+    font-size: 0.7rem;
+    line-height: 1.1;
+    color: #666;
+    max-height: 34px;
+    overflow: hidden;
+}
+#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-name {
+    display: none; /* Esconde nome se for 1h na grade */
+}
+
+/* Hover na Grade (Zoom para ler completo) */
+#grade-grid .grid-dropzone .grade-card:hover {
+    z-index: 100;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
 
 /* ===================== */
 /*    TELA DE GRAFO      */
