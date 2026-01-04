@@ -1386,6 +1386,13 @@ h1 {
     min-height: 50px;
 }
 
+.grade-card-content {
+    display: flex;              /* Ativa o Flexbox */
+    flex-direction: column;     /* Um item embaixo do outro */
+    flex-grow: 1;               /* Ocupa todo espaço disponível */
+    min-width: 0;               /* Impede que texto longo estoure */
+}
+
 /* --- 2. CONTEXTO: POOL (Lateral Direita) --- */
 /* Cards devem ser detalhados e legíveis */
 #pool-list-container .grade-card {
@@ -1420,8 +1427,16 @@ h1 {
 
 /* 1. Ajuste do Container de Conteúdo */
 #grade-grid .grid-dropzone .grade-card-content {
-    padding: 8px 4px !important; /* Aumentei o padding topo/baixo */
-    justify-content: flex-start !important; /* FIX: Alinha tudo no TOPO, não no centro */
+    padding: 6px 4px !important;
+    
+    /* ALINHAMENTO VERTICAL: */
+    display: flex !important;        /* Força o Flex */
+    flex-direction: column !important;
+    justify-content: flex-start !important; /* TRAVA NO TOPO */
+    
+    /* ALINHAMENTO HORIZONTAL: */
+    align-items: center !important;  
+    text-align: center;
     height: 100%;
 }
 
