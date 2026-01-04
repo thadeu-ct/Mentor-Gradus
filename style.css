@@ -1414,122 +1414,77 @@ h1 {
     gap: 8px;
 }
 
-/* ======================================= */
-/* 🎫  ESTILOS DOS CARDS (ESTILO PLANNER)  */
-/* ======================================= */
+/* ========================================================= */
+/* 🛠️ CORREÇÃO DEFINITIVA: 1H, POOL E ONLINE 🛠️ */
+/* ========================================================= */
 
+/* --- 1. AJUSTES GERAIS DO CARD --- */
 .grade-card {
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    /* Removemos a borda esquerda para usar a barra superior */
-    border: 1px solid #e0e0e0; 
-    margin: 0 !important; /* Na grade, sem margem */
-    cursor: grab;
-    transition: transform 0.1s, box-shadow 0.1s;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
+    height: auto; /* Altura automática por padrão (Pool e Online) */
+    min-height: 50px;
 }
 
-/* A Barra Colorida no Topo (Igual ao Planner) */
-.grade-card-bar {
-    height: 6px;
-    width: 100%;
-    background-color: #1abc9c; /* Cor padrão (Verde) */
-    flex-shrink: 0;
-}
-
-/* O Conteúdo do Card */
-.grade-card-content {
-    padding: 6px 8px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    justify-content: center; /* Centraliza verticalmente */
-    min-width: 0; /* Evita quebra de layout com texto longo */
-}
-
-/* Código da Matéria (Fonte Monospace igual Planner) */
-.grade-card-code {
-    font-family: 'Menlo', 'Courier New', monospace;
-    font-weight: 700;
-    color: #95a5a6; /* Cinza do código */
-    font-size: 0.7rem;
-    margin-bottom: 2px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Nome da Matéria */
-.grade-card-name {
-    color: #2c3e50; /* Azul escuro do título */
-    font-weight: 700;
-    font-size: 0.75rem;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* O Chip de Horas (2h) */
-.grade-card-chip {
-    background-color: #e0f7fa;
-    color: #007bff;
-    font-size: 0.6rem;
-    padding: 1px 6px;
-    border-radius: 10px;
-    font-weight: 700;
-}
-
-/* --- Estados e Ajustes --- */
-
-.grade-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    z-index: 10;
-}
-
-.grade-card:active {
-    cursor: grabbing;
-}
-
-/* Ajuste específico para bloco pequeno (1h) */
-.grade-card-small .grade-card-name {
-    display: none; /* Esconde nome se for pequeno */
-}
-.grade-card-small .grade-card-content {
-    justify-content: flex-start;
-    padding-top: 4px;
-}
-
-/* --- Cores Específicas (Opcional) --- */
-.grade-card.obrigatoria .grade-card-bar { background-color: #3498db; } /* Azul */
-.grade-card.optativa .grade-card-bar { background-color: #f39c12; }    /* Laranja */
-
-
-/* --- AJUSTE PARA O POOL (Barra Lateral) --- */
+/* --- 2. CONTEXTO: POOL (Sidebar) --- */
 #pool-list-container .grade-card {
-    height: auto !important;
-    min-height: 50px !important;
     margin: 8px 12px !important;
-    border-radius: 6px !important;
     display: flex !important;
 }
-
+/* No Pool, o card pequeno (1h) se comporta como um card normal */
 #pool-list-container .grade-card-small .grade-card-name {
-    display: block !important; /* Mostra nome no pool */
-    white-space: normal; /* Quebra linha no pool */
+    display: block !important; /* Mostra o nome */
+}
+#pool-list-container .grade-card-small .grade-card-content {
+    padding-top: 6px; /* Padding normal */
 }
 
-/* --- AJUSTE PARA A GRADE (Tabela) --- */
-.grid-dropzone .grade-card {
+
+/* --- 3. CONTEXTO: GRADE (Células de Horário) --- */
+/* Apenas dentro das células de horário o comportamento muda */
+#grade-grid .grid-dropzone .grade-card {
+    border-radius: 4px;
     width: 94% !important;
     margin: 0 auto !important;
-    border-radius: 4px;
+    height: 80px; /* Padrão 2h preenche a célula */
+}
+
+/* O Bloco de 1h DENTRO DA GRADE fica pequeno e sem nome */
+#grade-grid .grid-dropzone .grade-card.grade-card-small {
+    height: 40px !important; /* Metade da altura */
+    min-height: 0 !important;
+}
+#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-name {
+    display: none; /* Esconde nome apenas aqui */
+}
+#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-content {
+    justify-content: center;
+    padding-top: 0;
+}
+
+
+/* --- 4. CONTEXTO: LINHA ONLINE (Correção do Sumiço) --- */
+/* Removemos as restrições da classe .grid-dropzone para a área Online */
+#grade-online-row #online-dropzone {
+    height: auto !important; /* Altura cresce conforme coloca cards */
+    min-height: 80px;
+    display: flex;
+    flex-direction: row; /* Cards lado a lado */
+    flex-wrap: wrap; /* Quebra linha se encher */
+    gap: 10px;
+    padding: 10px;
+    align-items: flex-start;
+}
+
+/* Os cards no Online devem parecer com os do Pool (Completos) */
+#online-dropzone .grade-card {
+    width: 140px !important; /* Largura fixa confortável */
+    height: auto !important; /* Altura ajustável ao conteúdo */
+    min-height: 50px;
+    margin: 0 !important;
+}
+
+/* Mesmo sendo 1h, no Online mostra o nome */
+#online-dropzone .grade-card-small .grade-card-name {
+    display: block !important; 
 }
 
 

@@ -86,8 +86,7 @@ function gerarBlocosDeCreditos(listaCodigos) {
         let creditosRestantes = materia.creditos || 2; 
         let contadorBloco = 1;
 
-        // Tenta descobrir se é optativa ou obrigatória (para a cor da barra)
-        // Lógica simples: Se estiver na lista de optativas globais, é laranja.
+        // Verifica tipo para cor da barra
         let classeTipo = 'obrigatoria';
         if (window.estadoBackend && window.estadoBackend.optativas_escolhidas) {
              const ehOptativa = window.estadoBackend.optativas_escolhidas.some(m => m.codigo === codigo);
@@ -99,16 +98,14 @@ function gerarBlocosDeCreditos(listaCodigos) {
             
             const bloco = document.createElement('div');
             
-            // Adiciona classe de tipo (obrigatoria/optativa) para a cor da barra
+            // Adiciona classes: Base, Tipo (cor) e Tamanho (pequeno ou normal)
             bloco.className = `grade-card pool-item ${classeTipo}`; 
             
-            // Definição de Altura (Visual Tetris)
-            if (tamanhoBloco === 2) {
-                bloco.style.height = "80px"; 
-            } else {
-                bloco.style.height = "40px";
-                bloco.classList.add('grade-card-small'); 
+            if (tamanhoBloco === 1) {
+                bloco.classList.add('grade-card-small'); // CSS vai tratar isso dependendo de onde estiver
             }
+            
+            // REMOVIDO: bloco.style.height = ... (Deixe o CSS cuidar disso!)
             
             bloco.style.cursor = "grab";
             bloco.draggable = true;
@@ -118,7 +115,6 @@ function gerarBlocosDeCreditos(listaCodigos) {
 
             const badgeTexto = `${tamanhoBloco}h`;
 
-            // --- NOVO HTML (Estrutura igual ao Planner) ---
             bloco.innerHTML = `
                 <div class="grade-card-bar"></div>
                 <div class="grade-card-content">
