@@ -86,21 +86,27 @@ function gerarBlocosDeCreditos(listaCodigos) {
         let creditosRestantes = materia.creditos || 2; 
         let contadorBloco = 1;
 
+        // Tenta descobrir se é optativa ou obrigatória (para a cor da barra)
+        // Lógica simples: Se estiver na lista de optativas globais, é laranja.
+        let classeTipo = 'obrigatoria';
+        if (window.estadoBackend && window.estadoBackend.optativas_escolhidas) {
+             const ehOptativa = window.estadoBackend.optativas_escolhidas.some(m => m.codigo === codigo);
+             if (ehOptativa) classeTipo = 'optativa';
+        }
+
         while (creditosRestantes > 0) {
-            // Regra: Tenta pegar um bloco de 2h. Se só sobrar 1h, pega 1h.
             const tamanhoBloco = (creditosRestantes >= 2) ? 2 : 1;
             
             const bloco = document.createElement('div');
-            bloco.className = 'grade-card pool-item'; 
             
-            // --- NOVA LÓGICA DE TAMANHO ---
-            // Se o bloco é de 2h (2 créditos), ele ocupa a célula cheia (80px)
-            // Se o bloco é de 1h (1 crédito), ele ocupa metade (40px)
+            // Adiciona classe de tipo (obrigatoria/optativa) para a cor da barra
+            bloco.className = `grade-card pool-item ${classeTipo}`; 
+            
+            // Definição de Altura (Visual Tetris)
             if (tamanhoBloco === 2) {
                 bloco.style.height = "80px"; 
             } else {
                 bloco.style.height = "40px";
-                // Ajuste visual extra para o bloco pequeno não ficar apertado
                 bloco.classList.add('grade-card-small'); 
             }
             
@@ -112,13 +118,17 @@ function gerarBlocosDeCreditos(listaCodigos) {
 
             const badgeTexto = `${tamanhoBloco}h`;
 
+            // --- NOVO HTML (Estrutura igual ao Planner) ---
             bloco.innerHTML = `
-                <div class="grade-card-header">
-                    <strong>${materia.codigo}</strong>
-                    <span class="credit-badge">${badgeTexto}</span>
-                </div>
-                <div class="grade-card-name" title="${materia.nome}">
-                    ${materia.nome}
+                <div class="grade-card-bar"></div>
+                <div class="grade-card-content">
+                    <div class="grade-card-code">
+                        <span>${materia.codigo}</span>
+                        <span class="grade-card-chip">${badgeTexto}</span>
+                    </div>
+                    <div class="grade-card-name" title="${materia.nome}">
+                        ${materia.nome}
+                    </div>
                 </div>
             `;
 
