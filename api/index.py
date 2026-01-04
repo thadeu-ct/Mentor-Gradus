@@ -118,3 +118,18 @@ def api_get_dados_optativas():
         return jsonify({"erro": "Dados não carregados"}), 500
     
     return jsonify(dados_opt)
+
+# --- Endpoint 7: Enviar dicionário de Materias (Para cards da grade horária) ---
+@app.route('/api/get-dados-materias', methods=['GET'])
+def get_materias():
+    try:
+        # Garante que o caminho esteja correto a partir da pasta 'api'
+        # Ajuste o 'dados/materias.json' se a estrutura de pastas for diferente
+        caminho_arquivo = os.path.join(os.path.dirname(__file__), 'dados', 'materias.json')
+        
+        with open(caminho_arquivo, 'r', encoding='utf-8') as f:
+            dados = json.load(f)
+            
+        return jsonify(dados)
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
