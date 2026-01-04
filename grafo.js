@@ -1,26 +1,130 @@
 // =========================================================
-//  MENTOR GRADUS - GRAFO.JS (Versão Blindada 🛡️)
+//  MENTOR GRADUS - GRAFO.JS (Versão Blindada & Segura)
 // =========================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Tenta carregar extensões do Cytoscape se disponíveis
-    try { 
-        if (typeof cytoscapeDagre !== 'undefined') {
-            cytoscape.use(cytoscapeDagre);
-            console.log("✅ Extensão Dagre carregada com sucesso.");
-        } else {
-            console.warn("⚠️ Extensão Dagre não encontrada. Usando layout padrão.");
-        }
-    } catch (e) { 
-        console.warn("Aviso: Erro ao registrar Dagre (pode já estar carregado).", e); 
-    }
-    
-    // Conecta a lógica do Grafo ao Sistema Principal
-    window.processarEstadoDoBackend = function() { 
-        atualizarGrafo(); 
+// --- BLOCO DE SOBRESCRITA DE SEGURANÇA ---
+// Este bloco roda imediatamente ao carregar o arquivo, substituindo as funções
+// "perigosas" do app.js APENAS nesta página de Grafo.
+
+// 1. SEGURANÇA TOTAL: Impede que o Grafo salve alterações no LocalStorage do Planner
+window.salvarBoardLocal = function() {
+    console.log("🔒 Salvar bloqueado na página de Grafo para proteger seus dados do Planner.");
+};
+
+// 2. CORREÇÃO DE CRASH: Impede o erro de tentar criar colunas onde não existe board
+window.adicionarColunaPeriodo = function() {
+    console.log("🔒 Adicionar Coluna desativado nesta visualização.");
+};
+
+// 3. CORREÇÃO DA SIDEBAR: Restaura apenas os botões (chips), ignorando o board
+// Isso corrige a tela branca ao carregar
+window.carregarBoardLocal = function() {
+    const salvo = localStorage.getItem('mentorGradus_Estado');
+    if (!salvo) return;
+    const dados = JSON.parse(salvo);
+
+    // Função auxiliar interna para restaurar os chips visualmente
+    const restaurarChips = (seletorArea, seletorDropdown, lista) => {
+        const area = document.querySelector(seletorArea);
+        const dropdown = document.querySelector(seletorDropdown);
+        if(!area) return;
+        area.innerHTML = '';
+        if (!lista) return;
+
+        lista.forEach(val => {
+            const span = document.createElement('span');
+            span.className = 'chip-selected';
+            span.dataset.value = val;
+            // Abrevia nomes longos
+            const texto = val.startsWith("Engenharia de ") ? "Eng. " + val.substring(14) : val;
+            span.innerHTML = `${texto} <i class="fas fa-times"></i>`;
+            area.appendChild(span);
+
+            // Marca como selecionado no dropdown
+            if (dropdown) {
+                const op = dropdown.querySelector(`.chip[data-value="${val}"]`);
+                if (op) op.classList.add('disabled');
+            }
+        });
     };
 
-    // Configura botão de toggle da sidebar
+    // Restaura as seleções salvas
+    restaurarChips("#formacoes-selection", "#formacoes-options", dados.selecoes.formacoes);
+    restaurarChips("#dominios-selection", "#dominios-options", dados.selecoes.dominios);
+    
+    // Atualiza lógica de ênfases antes de restaurar a ênfase específica
+    if (typeof window.atualizarEnfasesDisponiveis === 'function') {
+        window.atualizarEnfasesDisponiveis();
+    }
+
+    // Restaura a ênfase se houver
+    if (dados.selecoes.enfase) {
+        const areaEnf = document.querySelector("#enfase-selection");
+        const dropEnf = document.querySelector("#enfase-options");
+        // Só restaura se a opção ainda for válida no dropdown
+        if(areaEnf && dropEnf && dropEnf.querySelector(`.chip[data-value="${dados.selecoes.enfase}"]`)) {
+            const val = dados.selecoes.enfase;
+            const span = document.createElement('span');
+            span.className = 'chip-selected';
+            span.dataset.value = val;
+            span.innerHTML = `${val} <i class="fas fa-times"></i>`;
+            areaEnf.innerHTML = '';
+            areaEnf.appendChild(span);
+            const op = dropEnf.querySelector(`.chip[data-value="${val}"]`);
+            if(op) op.classList.add('disabled');
+        }
+    }
+    
+    // Força o primeiro desenho do grafo
+    atualizarGrafoLogica();
+};
+
+// 4. CORREÇÃO DE LÓGICA: Permite múltiplas formações sem esconder as ênfases
+window.atualizarEnfasesDisponiveis = function() {
+    const formacoes = pegarValoresSelecionados("#formacoes-selection"); // Função global do app.js
+    const sectionEnfase = document.getElementById('enfase-section');
+    
+    let todasEnfases = new Set();
+
+    // Soma as ênfases de TODOS os cursos selecionados
+    formacoes.forEach(curso => {
+        if (window.dadosFormacoes[curso] && window.dadosFormacoes[curso].enfase) {
+            Object.keys(window.dadosFormacoes[curso].enfase).forEach(e => todasEnfases.add(e));
+        }
+    });
+
+    if (todasEnfases.size > 0) {
+        // Usa a função popularDropdown global do app.js
+        popularDropdown('#enfase-options', Array.from(todasEnfases));
+        sectionEnfase.style.display = 'block';
+    } else {
+        sectionEnfase.style.display = 'none';
+        const area = document.getElementById('enfase-selection');
+        if(area) area.innerHTML = ''; 
+    }
+};
+
+// 5. OTIMIZAÇÃO: Desliga chamadas desnecessárias ao backend python nesta página
+window.processarEstadoDoBackend = function() {
+    // Ao clicar em chips, apenas atualiza a UI local
+    if (typeof window.atualizarEnfasesDisponiveis === 'function') {
+        window.atualizarEnfasesDisponiveis();
+    }
+    atualizarGrafoLogica();
+};
+
+
+// --- INICIALIZAÇÃO PADRÃO DO GRAFO ---
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Carrega extensões do Cytoscape
+    try { 
+        if (typeof cytoscapeDagre !== 'undefined') cytoscape.use(cytoscapeDagre); 
+    } catch (e) { console.log("Aviso: Dagre já carregado."); }
+    
+    // Conecta a função global para uso externo se necessário
+    window.atualizarGrafo = atualizarGrafoLogica;
+
     const toggleBtn = document.getElementById("toggle-sidebar-btn");
     const cyDiv = document.getElementById("cy");
     if (toggleBtn && cyDiv) {
@@ -36,65 +140,53 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Função Principal
-function atualizarGrafo() {
-    console.log("🔄 Atualizando Grafo...");
+function atualizarGrafoLogica() {
+    console.log("🕸️ Atualizando visual do Grafo...");
 
-    // 1. Captura Chips da Sidebar
+    // Captura seleções de forma segura
     const formacoesChips = Array.from(document.querySelectorAll("#formacoes-selection .chip-selected"));
     const enfaseChip = document.querySelector("#enfase-selection .chip-selected");
     const dominiosChips = Array.from(document.querySelectorAll("#dominios-selection .chip-selected"));
 
-    // SE NÃO TIVER NADA SELECIONADO, LIMPA O GRAFO
+    const container = document.getElementById('cy');
+    
+    // CASO VAZIO: Se não tiver formação, limpa e avisa
     if (formacoesChips.length === 0) {
-        console.log("ℹ️ Nenhuma formação selecionada. Grafo limpo.");
-        if (window.cyInstance) window.cyInstance.elements().remove();
-        // Opcional: Mostrar aviso na tela
-        const container = document.getElementById('cy');
-        if(container) container.innerHTML = '<div style="display:flex; height:100%; align-items:center; justify-content:center; color:#777;">Selecione uma Formação na barra lateral para visualizar o grafo.</div>';
+        if (window.cyInstance) {
+            window.cyInstance.destroy();
+            window.cyInstance = null;
+        }
+        if(container) container.innerHTML = '<div style="display:flex; height:100%; align-items:center; justify-content:center; color:#777; font-size:1.2rem;">Selecione uma Formação na barra lateral para visualizar o grafo.</div>';
         return;
     }
 
+    // Se tinha mensagem de aviso, limpa para desenhar
+    if (container && container.innerText.includes("Selecione uma Formação")) {
+        container.innerHTML = '';
+    }
+
+    // Coleta dados das matérias
     const nomeEnfase = enfaseChip ? enfaseChip.dataset.value : null;
-    const nomesDominios = dominiosChips.map(chip => chip.dataset.value);
-
-    // 2. Coletar lista de códigos
     let codigosParaExibir = new Set();
-    const adicionarSeExistir = (lista) => {
-        if (lista) lista.forEach(c => codigosParaExibir.add(c));
-    };
+    const adicionar = (lista) => { if (lista) lista.forEach(c => codigosParaExibir.add(c)); };
 
-    // A) Formações
     formacoesChips.forEach(chip => {
-        const nomeCurso = chip.dataset.value;
-        const dadosCurso = window.dadosFormacoes[nomeCurso];
-
+        const dadosCurso = window.dadosFormacoes[chip.dataset.value];
         if (dadosCurso) {
-            adicionarSeExistir(dadosCurso.obrigatórias);
+            adicionar(dadosCurso.obrigatórias);
             if (nomeEnfase && dadosCurso.enfase && dadosCurso.enfase[nomeEnfase]) {
-                adicionarSeExistir(dadosCurso.enfase[nomeEnfase].obrigatórias);
+                adicionar(dadosCurso.enfase[nomeEnfase].obrigatórias);
             }
-        } else {
-            console.error(`❌ Dados da formação '${nomeCurso}' não encontrados! Verifique o JSON.`);
         }
     });
 
-    // B) Domínios
-    nomesDominios.forEach(dominio => {
-        const dadosDominio = window.dadosDominios[dominio];
-        if (dadosDominio) adicionarSeExistir(dadosDominio.obrigatórias);
+    dominiosChips.forEach(chip => {
+        const dadosDominio = window.dadosDominios[chip.dataset.value];
+        if (dadosDominio) adicionar(dadosDominio.obrigatórias);
     });
 
-    // 3. Filtra os dados globais
-    if (!window.dadosMaterias || window.dadosMaterias.length === 0) {
-        console.error("❌ Erro Crítico: window.dadosMaterias está vazio.");
-        return;
-    }
-
+    // Filtra e desenha
     const materiasFiltradas = window.dadosMaterias.filter(m => codigosParaExibir.has(m.codigo));
-    console.log(`📊 Matérias filtradas: ${materiasFiltradas.length} nós a desenhar.`);
-
-    // 4. Desenha
     desenharCytoscape(materiasFiltradas);
 }
 
@@ -102,15 +194,12 @@ function desenharCytoscape(materias) {
     const container = document.getElementById('cy');
     if (!container) return;
 
-    // Remove mensagem de aviso se existir
-    if(container.innerText.includes("Selecione uma Formação")) container.innerHTML = '';
-
     const elements = [];
     const materiasSet = new Set(materias.map(m => m.codigo));
 
     // Nós
     materias.forEach(mat => {
-        const labelNome = mat.nome.replace(/(.{15}\w*)\s/g, "$1\n");
+        const labelNome = mat.nome.length > 25 ? mat.nome.substring(0, 25) + '...' : mat.nome;
         elements.push({
             group: 'nodes',
             data: { id: mat.codigo, label: `${mat.codigo}\n${labelNome}` }
@@ -125,11 +214,7 @@ function desenharCytoscape(materias) {
                     if (materiasSet.has(prereqCod)) {
                         elements.push({
                             group: 'edges',
-                            data: { 
-                                id: `edge_${prereqCod}_to_${mat.codigo}`,
-                                source: prereqCod, 
-                                target: mat.codigo 
-                            }
+                            data: { source: prereqCod, target: mat.codigo }
                         });
                     }
                 });
@@ -137,86 +222,57 @@ function desenharCytoscape(materias) {
         }
     });
 
-    // Configura layout com fallback
-    let layoutName = 'dagre';
-    if (typeof cytoscapeDagre === 'undefined') {
-        layoutName = 'breadthfirst'; // Fallback se o dagre falhar
-        console.warn("⚠️ Usando layout 'breadthfirst' pois o Dagre não carregou.");
-    }
-
-    const layoutConfig = {
-        name: layoutName,
-        rankDir: 'TB',
-        nodeSep: 60,
-        rankSep: 100,
-        padding: 30,
-        animate: true,
-        animationDuration: 500
-    };
-
     const estilo = [
         {
             selector: 'node',
             style: {
                 'shape': 'round-rectangle',
-                'background-color': '#ffffff',
+                'background-color': 'white',
                 'border-width': 2,
                 'border-color': '#34495e',
                 'label': 'data(label)',
-                'color': '#2c3e50',
-                'font-size': '12px',
-                'font-weight': '600',
-                'text-valign': 'center',
-                'text-halign': 'center',
-                'text-wrap': 'wrap',
-                'width': '160px',
-                'height': '60px',
-                'padding': '10px'
+                'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap',
+                'width': '140px', 'height': '60px', 'font-size': '11px', 'font-weight': 'bold', 'color': '#2c3e50'
             }
         },
         {
             selector: 'edge',
             style: {
-                'width': 2,
-                'line-color': '#95a5a6',
-                'target-arrow-color': '#95a5a6',
-                'target-arrow-shape': 'triangle',
-                'curve-style': 'bezier',
-                'arrow-scale': 1.5
+                'width': 2, 'line-color': '#bdc3c7', 'target-arrow-color': '#bdc3c7',
+                'target-arrow-shape': 'triangle', 'curve-style': 'bezier'
             }
         },
-        { selector: '.highlight', style: { 'background-color': '#fff3e0', 'border-color': '#f39c12', 'border-width': 3, 'color': '#d35400' } },
-        { selector: '.prerequisito', style: { 'background-color': '#ffebee', 'border-color': '#c0392b', 'line-color': '#c0392b', 'target-arrow-color': '#c0392b', 'width': 3 } },
-        { selector: '.libera', style: { 'background-color': '#e8f8f5', 'border-color': '#27ae60', 'line-color': '#27ae60', 'target-arrow-color': '#27ae60', 'width': 3 } },
+        { selector: '.highlight', style: { 'background-color': '#fff3e0', 'border-color': '#f39c12', 'border-width': 3 } },
+        { selector: '.prerequisito', style: { 'border-color': '#e74c3c', 'line-color': '#e74c3c', 'target-arrow-color': '#e74c3c', 'width': 3 } },
+        { selector: '.libera', style: { 'border-color': '#27ae60', 'line-color': '#27ae60', 'target-arrow-color': '#27ae60', 'width': 3 } },
         { selector: '.faded', style: { 'opacity': 0.1 } }
     ];
 
     if (window.cyInstance) {
         window.cyInstance.json({ elements: elements });
-        window.cyInstance.layout(layoutConfig).run();
+        // Recalcula o layout suavemente
+        window.cyInstance.layout({ name: 'dagre', rankDir: 'TB', animate: true, animationDuration: 500 }).run();
     } else {
         window.cyInstance = cytoscape({
             container: container,
             elements: elements,
             style: estilo,
-            layout: layoutConfig,
-            minZoom: 0.2,
-            maxZoom: 2,
-            wheelSensitivity: 0.2
+            layout: { name: 'dagre', rankDir: 'TB' },
+            minZoom: 0.2, maxZoom: 2, wheelSensitivity: 0.2
         });
-
-        // Eventos de Mouse
-        window.cyInstance.on('mouseover', 'node', function(e) {
+        
+        // Interatividade
+        window.cyInstance.on('mouseover', 'node', e => {
             const node = e.target;
             const cy = window.cyInstance;
-            cy.elements().removeClass('highlight prerequisito libera faded');
-            cy.elements().addClass('faded');
+            cy.elements().removeClass('highlight prerequisito libera faded').addClass('faded');
             node.removeClass('faded').addClass('highlight');
             node.predecessors().removeClass('faded').addClass('prerequisito');
             node.successors().removeClass('faded').addClass('libera');
         });
-        window.cyInstance.on('mouseout', 'node', function(e) {
-             window.cyInstance.elements().removeClass('highlight prerequisito libera faded');
+        
+        window.cyInstance.on('mouseout', 'node', () => {
+            window.cyInstance.elements().removeClass('highlight prerequisito libera faded');
         });
     }
 }
