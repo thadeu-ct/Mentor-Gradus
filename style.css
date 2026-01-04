@@ -1363,6 +1363,11 @@ h1 {
     height: auto !important; /* Cresce conforme necessário */
 }
 
+/* --- Classe para alinhar card de 1h na parte de baixo --- */
+.grade-card.bottom-aligned {
+    margin-top: auto !important;
+}
+
 /* --- 3. CONTEXTO: ONLINE (Rodapé) --- */
 /* Cards LARGOS, Lado a Lado e Legíveis */
 

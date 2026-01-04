@@ -244,6 +244,8 @@ function restaurarPosicoesGrade(periodoId) {
 
 // --- LÓGICA DE DRAG & DROP DA GRADE ---
 
+// --- LÓGICA DE DRAG & DROP DA GRADE (ATUALIZADA) ---
+
 function adicionarEventosDeArrastoGrade(alvo) {
     alvo.addEventListener('dragover', e => {
         e.preventDefault();
@@ -262,9 +264,115 @@ function adicionarEventosDeArrastoGrade(alvo) {
         const draggedItem = document.getElementById(blockId);
         
         if (draggedItem) {
+            // --- NOVA LÓGICA DE POSICIONAMENTO (CIMA / BAIXO) ---
+            
+            // 1. Detecta altura da célula e onde o mouse soltou
+            const rect = alvo.getBoundingClientRect();
+            const mouseY = e.clientY - rect.top; // Posição Y relativa à célula
+            const isBottomHalf = mouseY > (rect.height / 2); // Passou da metade?
+
+            // 2. Regra: Só permite escolher alinhamento se a célula estiver VAZIA
+            // (Se já tem um card, o Flexbox empilha um em cima do outro naturalmente)
+            if (alvo.children.length === 0) {
+                // Se o card for pequeno (1h) e soltou embaixo -> Aplica classe
+                if (draggedItem.dataset.tamanho == "1" && isBottomHalf) {
+                    draggedItem.classList.add('bottom-aligned');
+                } else {
+                    draggedItem.classList.remove('bottom-aligned');
+                }
+            } else {
+                // Se já tem gente na célula, remove alinhamentos forçados para empilhar bonitinho
+                draggedItem.classList.remove('bottom-aligned');
+                Array.from(alvo.children).forEach(filho => filho.classList.remove('bottom-aligned'));
+            }
+
             alvo.appendChild(draggedItem);
+            
             // Salva imediatamente após soltar!
             salvarPosicoesGrade();
+        }
+    });
+}
+
+// --- LÓGICA DE PERSISTÊNCIA DA GRADE (ATUALIZADA) ---
+
+function salvarPosicoesGrade() {
+    if (!periodoSelecionadoId) return;
+
+    const mapaPosicoes = {};
+
+    // 1. Varre todas as células de tempo
+    document.querySelectorAll('.grid-cell.grid-dropzone').forEach(celula => {
+        const dia = celula.dataset.day;
+        const hora = celula.dataset.time;
+        const chavePosicao = `${dia}-${hora}`;
+        
+        // --- MODIFICAÇÃO: Salva o alinhamento junto com o ID ---
+        const blocos = Array.from(celula.querySelectorAll('.grade-card')).map(el => {
+            // Se tiver a classe bottom-aligned, salva com sufixo "::bottom"
+            if (el.classList.contains('bottom-aligned')) {
+                return `${el.id}::bottom`;
+            }
+            return el.id;
+        });
+
+        if (blocos.length > 0) {
+            mapaPosicoes[chavePosicao] = blocos;
+        }
+    });
+
+    // 2. Varre a área Online (Sem mudanças aqui, online não tem Cima/Baixo)
+    const onlineZone = document.getElementById('online-dropzone');
+    if (onlineZone) {
+        const blocosOnline = Array.from(onlineZone.querySelectorAll('.grade-card')).map(el => el.id);
+        if (blocosOnline.length > 0) {
+            mapaPosicoes['online'] = blocosOnline;
+        }
+    }
+
+    const memoriaGrade = JSON.parse(localStorage.getItem('mentorGradus_GradePositions') || '{}');
+    memoriaGrade[periodoSelecionadoId] = mapaPosicoes;
+    
+    localStorage.setItem('mentorGradus_GradePositions', JSON.stringify(memoriaGrade));
+}
+
+function restaurarPosicoesGrade(periodoId) {
+    const memoriaRaw = localStorage.getItem('mentorGradus_GradePositions');
+    if (!memoriaRaw) return;
+
+    const memoriaTotal = JSON.parse(memoriaRaw);
+    const posicoesDoPeriodo = memoriaTotal[periodoId];
+
+    if (!posicoesDoPeriodo) return;
+
+    Object.keys(posicoesDoPeriodo).forEach(chavePosicao => {
+        let dropzoneDestino;
+
+        if (chavePosicao === 'online') {
+            dropzoneDestino = document.getElementById('online-dropzone');
+        } else {
+            const [dia, hora] = chavePosicao.split('-');
+            dropzoneDestino = document.querySelector(`.grid-dropzone[data-day="${dia}"][data-time="${hora}"]`);
+        }
+
+        if (dropzoneDestino) {
+            const listaIdsBlocos = posicoesDoPeriodo[chavePosicao];
+            
+            listaIdsBlocos.forEach(idString => {
+                // --- MODIFICAÇÃO: Lê o sufixo e reaplica a classe ---
+                const isBottom = idString.endsWith('::bottom');
+                const realId = isBottom ? idString.split('::')[0] : idString;
+
+                const bloco = document.getElementById(realId);
+                if (bloco) {
+                    if (isBottom) {
+                        bloco.classList.add('bottom-aligned');
+                    } else {
+                        bloco.classList.remove('bottom-aligned');
+                    }
+                    dropzoneDestino.appendChild(bloco);
+                }
+            });
         }
     });
 }
