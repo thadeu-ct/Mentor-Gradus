@@ -1249,18 +1249,21 @@ h1 {
 }
 
 #grade-online-row #online-dropzone {
-    padding: 10px; 
-    background-color: #fafafa;
+    /* Força o Flexbox a alinhar em LINHA (Row) e não Coluna */
+    display: flex !important;
+    flex-direction: row !important; 
+    flex-wrap: wrap !important; /* Se faltar espaço, quebra linha */
     
-    /* Layout Flex para acomodar vários cards lado a lado */
-    display: flex;
-    flex-wrap: wrap;
+    /* Espaçamento e Alinhamento */
     gap: 10px;
-    align-items: flex-start; /* Alinha cards no topo */
-    align-content: flex-start;
+    align-items: flex-start !important;
+    align-content: flex-start !important;
     
-    height: auto !important; /* Cresce conforme necessário */
+    /* Reset de altura para crescer conforme necessário */
+    height: auto !important;
     min-height: 90px;
+    padding: 10px;
+    background-color: #fafafa;
 }
 
 /* 3. Células Base */
