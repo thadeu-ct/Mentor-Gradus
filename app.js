@@ -35,6 +35,7 @@ function iniciarMentorGradus() {
 
     // 3. Verifica em qual página está
     const plannerBoard = document.getElementById('board-container');
+    const gradeBoard = document.getElementById('grade-grid-container');
     const grafoContainer = document.getElementById('cy');
 
     if (plannerBoard) {
