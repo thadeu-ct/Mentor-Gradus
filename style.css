@@ -1250,9 +1250,16 @@ h1 {
 
 /* 6. Célula de Drop (Onde os cards vão) */
 .grid-dropzone {
-    min-height: 60px; /* (Altura boa para blocos de 2h) */
-    transition: background-color 0.2s ease;
-    padding: 4px;
+    height: 80px; /* Altura fixa igual ao card de 2h */
+    min-height: 80px;
+    padding: 0; /* Remove padding para o card encostar nas bordas */
+    border-bottom: 1px solid #e0e0e0;
+    box-sizing: border-box; /* Importante para a borda não somar no tamanho */
+    
+    /* Centraliza se tiver só um card pequeno */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
 }
 
 .grid-dropzone.drag-over {
@@ -1410,22 +1417,33 @@ h1 {
 /* ======================================= */
 /* 🎫  ESTILOS DOS CARDS (POST-ITS)        */
 /* ======================================= */
-
-/* Estilo Base do Card na Grade */
+/* Ajustes finos no Card da Grade */
 .grade-card {
-    background-color: #ffffff;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08); /* Sombra suave */
-    border-left: 5px solid #1abc9c; /* Cor padrão (Verde Mentor) */
-    padding: 6px 8px;
-    cursor: grab;
-    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s;
-    font-size: 0.75rem;
-    position: relative;
-    overflow: hidden;
-    user-select: none;
-    border: 1px solid #eee; /* Borda sutil em volta */
-    border-left-width: 5px; /* Reforça a lateral */
+    box-sizing: border-box; /* Garante que padding não estoure a altura */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centraliza o conteúdo verticalmente */
+    margin: 0 !important; /* Remove margens externas para colar um no outro */
+    border-radius: 0; /* Opcional: deixa quadrado para parecer bloco de tempo */
+    border-bottom: 1px solid white; /* Separador sutil entre blocos empilhados */
+}
+/* Estilo específico para o bloco pequeno (1h) */
+.grade-card-small .grade-card-name {
+    display: none; /* Esconde o nome longo se for bloco de 1h (só cabe o código) */
+}
+
+.grade-card-small .grade-card-header {
+    margin-bottom: 0; /* Remove margem extra */
+}
+
+#pool-list-container .grade-card {
+    height: auto !important;
+    min-height: 40px;
+    margin-bottom: 8px !important; /* Devolve a margem no pool */
+    border-radius: 6px; /* Devolve a borda redonda no pool */
+}
+#pool-list-container .grade-card-small .grade-card-name {
+    display: block; /* Mostra o nome no pool, onde tem espaço */
 }
 
 /* Hover: Leve subida */

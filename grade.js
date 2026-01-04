@@ -77,7 +77,7 @@ function configurarSidebarGrade(boardSalvo) {
 
 function gerarBlocosDeCreditos(listaCodigos) {
     const container = document.getElementById('pool-list-container');
-    container.innerHTML = ''; // Limpa a lista
+    container.innerHTML = ''; 
 
     listaCodigos.forEach(codigo => {
         const materia = window.dadosMaterias.find(m => m.codigo === codigo);
@@ -86,20 +86,30 @@ function gerarBlocosDeCreditos(listaCodigos) {
         let creditosRestantes = materia.creditos || 2; 
         let contadorBloco = 1;
 
-        // Enquanto houver créditos para distribuir...
         while (creditosRestantes > 0) {
             // Regra: Tenta pegar um bloco de 2h. Se só sobrar 1h, pega 1h.
             const tamanhoBloco = (creditosRestantes >= 2) ? 2 : 1;
             
             const bloco = document.createElement('div');
             bloco.className = 'grade-card pool-item'; 
+            
+            // --- NOVA LÓGICA DE TAMANHO ---
+            // Se o bloco é de 2h (2 créditos), ele ocupa a célula cheia (80px)
+            // Se o bloco é de 1h (1 crédito), ele ocupa metade (40px)
+            if (tamanhoBloco === 2) {
+                bloco.style.height = "80px"; 
+            } else {
+                bloco.style.height = "40px";
+                // Ajuste visual extra para o bloco pequeno não ficar apertado
+                bloco.classList.add('grade-card-small'); 
+            }
+            
             bloco.style.cursor = "grab";
             bloco.draggable = true;
             bloco.dataset.codigoOriginal = materia.codigo;
-            bloco.dataset.tamanho = tamanhoBloco; // Guarda o tamanho (útil para validação futura)
+            bloco.dataset.tamanho = tamanhoBloco;
             bloco.id = `grade-block-${materia.codigo}-${contadorBloco}`; 
 
-            // Define texto da badge (ex: "2h" ou "1h") para ficar claro
             const badgeTexto = `${tamanhoBloco}h`;
 
             bloco.innerHTML = `
@@ -111,13 +121,6 @@ function gerarBlocosDeCreditos(listaCodigos) {
                     ${materia.nome}
                 </div>
             `;
-
-            // Ajusta altura visual proporcional (opcional, mas fica chique)
-            // Se for 1h, fica menorzinho. Se for 2h, tamanho padrão.
-            if (tamanhoBloco === 1) {
-                bloco.style.minHeight = "40px"; // Metade da altura visual
-                bloco.style.borderLeftColor = "#f39c12"; // Cor diferente para destacar blocos quebrados? (Opcional)
-            }
 
             container.appendChild(bloco);
 
