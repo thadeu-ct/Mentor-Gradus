@@ -1441,67 +1441,97 @@ function carregarBoardLocal() {
 
     const dados = JSON.parse(salvo);
     
-    // 1. Restaura Seleções (Visualmente)
-    // (Precisamos adicionar os chips na sidebar para o processarEstadoDoBackend ler depois)
-    const recriarChips = (seletor, lista) => {
-        const area = document.querySelector(seletor);
+    // 1. Restaura Seleções e Sincroniza Dropdowns
+    const restaurarChipsESincronizar = (seletorArea, seletorDropdown, lista) => {
+        const area = document.querySelector(seletorArea);
+        const dropdown = document.querySelector(seletorDropdown);
         if(!area) return;
-        area.innerHTML = '';
+        
+        area.innerHTML = ''; // Limpa para evitar duplicatas visuais
+        
+        if (!lista) return;
+
         lista.forEach(val => {
+            // A) Cria o chip visual selecionado
             const span = document.createElement('span');
             span.className = 'chip-selected';
             span.dataset.value = val;
-            // Tenta pegar o texto bonito se der, senão usa o valor
+            
+            // Tratamento de nome curto (Engenharia -> Eng.)
             const texto = val.startsWith("Engenharia de ") ? "Eng. " + val.substring(14) : val;
             span.innerHTML = `${texto} <i class="fas fa-times"></i>`;
             area.appendChild(span);
+
+            // B) Vai no Dropdown e marca como DISABLED (Risca a opção)
+            if (dropdown) {
+                // Busca a opção correspondente pelo valor
+                const opcao = dropdown.querySelector(`.chip[data-value="${val}"]`);
+                if (opcao) {
+                    opcao.classList.add('disabled');
+                }
+            }
         });
     };
 
-    recriarChips("#formacoes-selection", dados.selecoes.formacoes);
-    recriarChips("#dominios-selection", dados.selecoes.dominios);
+    // Restaura Formações e Domínios (e avisa os menus!)
+    restaurarChipsESincronizar("#formacoes-selection", "#formacoes-options", dados.selecoes.formacoes);
+    restaurarChipsESincronizar("#dominios-selection", "#dominios-options", dados.selecoes.dominios);
     
+    // IMPORTANTE: Agora que as formações estão lá, forçamos a atualização da lista de Ênfases
+    // Isso popula o dropdown de ênfases com as opções corretas antes de tentarmos selecionar uma.
+    atualizarEnfasesDisponiveis();
+
+    // Restaura Ênfase (se houver)
     if (dados.selecoes.enfase) {
-        // A ênfase é chata porque o container começa oculto.
-        // Vamos forçar a criação do chip, a validação visual ocorre depois.
         const areaEnfase = document.querySelector("#enfase-selection");
+        const dropdownEnfase = document.querySelector("#enfase-options");
+        
         if(areaEnfase) {
+            const val = dados.selecoes.enfase;
+            
+            // Cria o chip
             const span = document.createElement('span');
             span.className = 'chip-selected';
-            span.dataset.value = dados.selecoes.enfase;
-            span.innerHTML = `${dados.selecoes.enfase} <i class="fas fa-times"></i>`;
+            span.dataset.value = val;
+            span.innerHTML = `${val} <i class="fas fa-times"></i>`;
+            areaEnfase.innerHTML = ''; // Limpa anterior
             areaEnfase.appendChild(span);
-            document.getElementById('enfase-section').style.display = 'block';
+            
+            // Garante que a seção apareça
+            const section = document.getElementById('enfase-section');
+            if(section) section.style.display = 'block';
+
+            // Marca como ocupada no dropdown recém-criado
+            if (dropdownEnfase) {
+                const opcao = dropdownEnfase.querySelector(`.chip[data-value="${val}"]`);
+                if (opcao) opcao.classList.add('disabled');
+            }
         }
     }
 
     // 2. Restaura o Board (Colunas e Cards)
-    // Precisamos garantir que as colunas existam (p3, p4...)
+    // (O resto continua igual, apenas garantindo que as colunas existam)
     const colunasSalvas = Object.keys(dados.board); // ["p1", "p2", "p3"...]
     
-    // Ordena para criar na ordem certa (p1, p2...)
+    // Ordena numericamente
     colunasSalvas.sort((a,b) => parseInt(a.replace('p','')) - parseInt(b.replace('p','')));
 
     colunasSalvas.forEach(idCol => {
-        // Se a coluna não existe (ex: p3), cria
         let contentDiv = document.querySelector(`.column-content[data-column-id="${idCol}"]`);
+        
+        // Se a coluna não existe (ex: p5), cria na hora
         if (!contentDiv) {
-            adicionarColunaPeriodo(); // Cria p3, p4... até chegar no necessário
+            adicionarColunaPeriodo(); 
             contentDiv = document.querySelector(`.column-content[data-column-id="${idCol}"]`);
         }
 
-        // Adiciona os cards (TEMPORÁRIOS - Só o esqueleto)
-        // O conteúdo real (nome, creditos) será preenchido quando o "processarEstadoDoBackend"
-        // rodar e baixar os dados do Python.
+        // Adiciona os cards "placeholder" (serão hidratados depois)
         const codigos = dados.board[idCol];
         codigos.forEach(cod => {
-            // Cria um card "placeholder" que o processarEstado vai atualizar ou manter
-            // Precisamos criar porque o "pegarMateriasNoBoard" lê o DOM.
             const card = document.createElement('div');
             card.className = 'materia-card';
             card.id = 'card-' + cod;
             card.dataset.codigo = cod;
-            // Preenche com dados mínimos para não quebrar
             card.innerHTML = `<span class="card-code">${cod}</span>...carregando...`; 
             contentDiv.appendChild(card);
         });
