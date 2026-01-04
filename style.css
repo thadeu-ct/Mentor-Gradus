@@ -1418,60 +1418,52 @@ h1 {
 /* --- 4. CONTEXTO: GRADE (Células Centrais) --- */
 /* Layout limpo, centralizado e sem excessos */
 
-#grade-grid .grid-dropzone .grade-card {
-    width: 100% !important;
-    height: 100% !important; /* Ocupa a célula (80px) */
-    margin: 0 !important;
-    border-radius: 4px;
-    box-shadow: none; /* Flat design na grade */
-    border: 1px solid #ddd;
-    border-left-width: 5px; /* Mantém a cor lateral */
-}
-
-/* Ajuste para bloco pequeno (1h) na grade */
-#grade-grid .grid-dropzone .grade-card.grade-card-small {
-    height: 48% !important; /* Quase metade */
-    min-height: 0 !important;
-}
-
-/* Limpeza Visual Específica da Grade */
-#grade-grid .grid-dropzone .grade-card .grade-card-bar { display: none !important; } /* Remove topo colorido */
-#grade-grid .grid-dropzone .grade-card-chip { display: none !important; } /* Remove badge "2h" */
-
-/* Centralização do Conteúdo */
+/* 1. Ajuste do Container de Conteúdo */
 #grade-grid .grid-dropzone .grade-card-content {
-    padding: 2px 4px !important;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    padding: 8px 4px !important; /* Aumentei o padding topo/baixo */
+    justify-content: flex-start !important; /* FIX: Alinha tudo no TOPO, não no centro */
+    height: 100%;
 }
 
+/* 2. Ajuste do Código (Fixo no topo) */
 #grade-grid .grid-dropzone .grade-card-code {
     justify-content: center;
-    font-size: 0.85rem;
-    color: #333;
-    margin-bottom: 2px;
+    font-size: 0.8rem; /* Levemente menor para caber melhor */
+    color: #555; /* Um cinza mais escuro para leitura */
+    margin-bottom: 4px; /* Espaço fixo entre código e nome */
+    flex-shrink: 0; /* Garante que o código nunca seja esmagado */
+    font-weight: 800;
 }
 
-/* Nome da Matéria (Permite quebra de linha para não vazar) */
+/* 3. Ajuste do Nome (Espaço Fixo) */
 #grade-grid .grid-dropzone .grade-card-name {
-    display: block !important;
-    white-space: normal !important; /* Permite quebra */
+    display: flex !important;       /* Transforma o nome num container flex */
+    align-items: center;            /* Centraliza o texto verticalmente dentro da caixa dele */
+    justify-content: center;        /* Centraliza horizontalmente */
+    
+    white-space: normal !important; /* Quebra linha */
+    word-break: break-word;         /* Garante que palavras gigantes não vazem (Sexta-feira agradece) */
+    
     font-size: 0.7rem;
     line-height: 1.1;
-    color: #666;
-    max-height: 34px;
-    overflow: hidden;
-}
-#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-name {
-    display: none; /* Esconde nome se for 1h na grade */
+    color: #2c3e50;
+    
+    /* O PULO DO GATO: */
+    flex-grow: 1;                   /* Ocupa todo o espaço restante */
+    width: 100%;                    /* Garante largura total */
+    max-height: 40px;               /* Limita altura para não estourar */
+    overflow: hidden;               
 }
 
-/* Hover na Grade (Zoom para ler completo) */
-#grade-grid .grid-dropzone .grade-card:hover {
-    z-index: 100;
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+/* 4. Ajuste para o bloco de 1h (Pequeno) */
+#grade-grid .grid-dropzone .grade-card.grade-card-small {
+    height: 48% !important;
+    min-height: 0 !important;
+}
+/* No bloco pequeno, centralizamos tudo de novo pois não tem nome */
+#grade-grid .grid-dropzone .grade-card.grade-card-small .grade-card-content {
+    justify-content: center !important;
+    padding: 0 !important;
 }
 
 /* ===================== */
