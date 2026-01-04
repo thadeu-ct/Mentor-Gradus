@@ -31,43 +31,57 @@ function configurarSidebarGrade(boardSalvo) {
     const containerSelecao = document.getElementById('periodos-selection');
     if (!containerSelecao) return;
 
-    containerSelecao.innerHTML = ''; // Limpa lista anterior
+    containerSelecao.innerHTML = ''; 
 
-    // Ordena os períodos (p1, p2, p3...)
+    // Ordena os períodos numericamente
     const periodosOrdenados = Object.keys(boardSalvo).sort((a,b) => {
         return parseInt(a.replace('p','')) - parseInt(b.replace('p',''));
     });
 
+    if (periodosOrdenados.length === 0) {
+        containerSelecao.innerHTML = '<p style="padding:10px; color:#666;">Nenhum período planejado.</p>';
+        return;
+    }
+
     periodosOrdenados.forEach(idCol => {
         const numero = idCol.replace('p', '');
-        const qtdMaterias = boardSalvo[idCol].length;
+        const listaMaterias = boardSalvo[idCol];
+        const qtdMaterias = listaMaterias.length;
         
-        // Só cria botão se tiver matérias
+        // --- CÁLCULO DE CRÉDITOS DO PERÍODO ---
+        let totalCreditos = 0;
+        listaMaterias.forEach(cod => {
+            const mat = window.dadosMaterias.find(m => m.codigo === cod);
+            if (mat) totalCreditos += (mat.creditos || 0);
+        });
+
+        // Só mostra se tiver matérias (ou se quiser mostrar vazios, remova o if)
         if (qtdMaterias > 0) {
             const chip = document.createElement('div');
             
-            // Estado Inicial: Classe 'chip' (Cinza, clicável)
-            chip.className = 'chip'; 
-            chip.textContent = `${numero}º Período (${qtdMaterias})`;
+            chip.className = 'chip period-list-item'; // Adicionei uma classe extra para estilizar
             chip.dataset.periodo = idCol;
             
-            // Evento de Clique
+            // HTML interno para separar Nome (Esq) e Detalhes (Dir)
+            chip.innerHTML = `
+                <span class="period-name">${numero}º Período</span>
+                <span class="period-info">${qtdMaterias} Mat. (${totalCreditos} Cr.)</span>
+            `;
+            
             chip.addEventListener('click', () => {
-                // 1. Reseta TODOS os chips para o estado cinza (.chip)
-                const todosChips = containerSelecao.querySelectorAll('div');
-                todosChips.forEach(c => {
-                    c.className = 'chip'; // Volta a ser cinza
-                });
+                // 1. Reseta seleção visual
+                const todosChips = containerSelecao.querySelectorAll('.chip');
+                todosChips.forEach(c => c.classList.remove('chip-selected'));
 
-                // 2. Define o clicado como selecionado (.chip-selected)
-                chip.className = 'chip-selected'; // Fica verde
+                // 2. Seleciona o atual
+                chip.classList.add('chip-selected');
 
-                // 3. Atualiza Título da Direita
+                // 3. Atualiza Título
                 const tituloDireita = document.querySelector('.pool-header h3');
                 if(tituloDireita) tituloDireita.textContent = `Matérias do ${numero}º Período`;
 
-                // 4. Gera os blocos na Direita
-                gerarBlocosDeCreditos(boardSalvo[idCol]);
+                // 4. Gera os blocos
+                gerarBlocosDeCreditos(listaMaterias);
             });
 
             containerSelecao.appendChild(chip);
