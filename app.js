@@ -85,13 +85,13 @@ async function carregarDadosIniciais() {
             fetch('/api/get-dados-formacoes').then(r => r.json()),
             fetch('/api/get-dados-dominios').then(r => r.json()),
             fetch('/api/get-dados-optativas').then(r => r.json()),
-            fetch('materias.json').then(r => r.json()) // <--- O PULO DO GATO 🐈
+            fetch('/api/materias.json').then(r => r.json())
         ]);
 
         window.dadosFormacoes = formacoes;
         window.dadosDominios = dominios;
         window.dadosOptativas = optativas;
-        window.dadosMaterias = materias; // Agora a Grade Horária sabe quem é quem!
+        window.dadosMaterias = materias;
 
         popularDropdown('#formacoes-options', Object.keys(formacoes));
         popularDropdown('#dominios-options', Object.keys(dominios));
