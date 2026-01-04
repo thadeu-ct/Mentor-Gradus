@@ -1361,68 +1361,72 @@ h1 {
 }
 
 /* --- 3. CONTEXTO: ONLINE (Rodapé) --- */
-/* Cards devem ser IDÊNTICOS aos da Grade (Limpos e Centralizados) */
+/* Cards LARGOS, Lado a Lado e Legíveis */
 
 #online-dropzone .grade-card {
-    width: 140px !important;  /* Largura fixa para ficar organizado */
-    height: 80px !important;  /* Mesma altura da grade (2h) */
+    width: 220px !important;  /* BEM MAIS LARGO para caber o nome completo */
+    height: 80px !important;  /* Altura padrão (2h) */
     margin: 0 !important;
     border-radius: 4px;
     border: 1px solid #ddd;
-    border-left-width: 5px;   /* Mantém a cor lateral */
-    box-shadow: none;         /* Flat design igual a grade */
+    border-left-width: 5px;   /* Mantém a identidade visual */
+    box-shadow: none;         /* Flat */
+    flex-shrink: 0;           /* Garante que fiquem com 220px fixos */
 }
 
-/* 1. REMOVE BARRA TOPO E BADGE (Igual na Grade) */
+/* 1. REMOVE BARRA TOPO E BADGE (Visual Limpo) */
 #online-dropzone .grade-card .grade-card-bar,
 #online-dropzone .grade-card .grade-card-chip {
     display: none !important;
 }
 
-/* 2. LAYOUT INTERNO (Igual na Grade) */
+/* 2. LAYOUT INTERNO (Centralizado) */
 #online-dropzone .grade-card-content {
     display: flex !important;
     flex-direction: column !important;
-    justify-content: flex-start !important; /* Trava no topo */
-    align-items: center !important;         /* Centraliza horizontal */
+    justify-content: center !important; /* Centraliza verticalmente */
+    align-items: center !important;     /* Centraliza horizontalmente */
     text-align: center;
-    padding: 6px 4px !important;
+    padding: 4px 8px !important;        /* Padding lateral maior */
     height: 100%;
 }
 
-/* 3. CÓDIGO (Igual na Grade) */
+/* 3. CÓDIGO (No Topo) */
 #online-dropzone .grade-card-code {
     justify-content: center;
     font-size: 0.8rem;
     color: #444;
     font-weight: 800;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     width: 100%;
-    flex-shrink: 0;
 }
 
-/* 4. NOME (Igual na Grade - Ocupa espaço restante) */
+/* 4. NOME (Com espaço para respirar) */
 #online-dropzone .grade-card-name {
     display: flex !important;
-    align-items: center;     /* Centraliza verticalmente */
-    justify-content: center; /* Centraliza horizontalmente */
-    flex-grow: 1;            /* Cresce para ocupar vazio */
-    width: 100%;
+    align-items: center;     
+    justify-content: center; 
     
-    white-space: normal !important;
-    line-height: 1.1;
-    font-size: 0.7rem;
-    color: #666;
+    white-space: normal !important; /* Permite quebrar linha à vontade */
+    line-height: 1.2;
+    font-size: 0.75rem; 
+    color: #555;
+    
+    width: 100%;
+    max-height: 44px; /* Permite até 3 linhas de texto */
     overflow: hidden;
 }
 
 /* Ajuste para card pequeno (1h) no Online */
 #online-dropzone .grade-card.grade-card-small {
-    height: 40px !important; /* Metade da altura */
+    height: 40px !important; 
     min-height: 0 !important;
 }
+/* No online, até o card pequeno mostra o nome (em linha única ou fonte menor) */
 #online-dropzone .grade-card.grade-card-small .grade-card-name {
-    display: none !important; /* Esconde nome se for pequeno */
+    display: flex !important; 
+    font-size: 0.7rem;
+    max-height: 16px; /* Apenas 1 linha no card pequeno */
 }
 
 /* ========================================================= */
