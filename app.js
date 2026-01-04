@@ -85,7 +85,7 @@ async function carregarDadosIniciais() {
             fetch('/api/get-dados-formacoes').then(r => r.json()),
             fetch('/api/get-dados-dominios').then(r => r.json()),
             fetch('/api/get-dados-optativas').then(r => r.json()),
-            fetch('api/dados/materias.json').then(r => r.json())
+            fetch('/api/get-dados-materias').then(r => r.json())
         ]);
 
         window.dadosFormacoes = formacoes;
