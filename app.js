@@ -35,12 +35,14 @@ function iniciarMentorGradus() {
 
     // 3. Verifica em qual página está
     const plannerBoard = document.getElementById('board-container');
-    const gradeBoard = document.getElementById('grade-grid-container');
+    const grafoContainer = document.getElementById('cy');
 
     if (plannerBoard) {
         inicializarPaginaPlanner();
     } else if (gradeBoard) {
         inicializarPaginaGrade();
+    } else if (grafoContainer) {
+        inicializarPaginaGrafoApp();
     }
 }
 
@@ -74,6 +76,21 @@ function inicializarPaginaPlanner() {
 
         // Inicia processo de captação das matérias
         processarEstadoDoBackend(); 
+    });
+}
+
+function inicializarPaginaGrafoApp() {
+    console.log("🕸️ Iniciando Página de Grafo...");
+    carregarDadosIniciais().then(() => {
+        inicializarSeletoresDeChips(); // Ativa os botões da sidebar
+        
+        // Restaura as seleções (Eng. Computação, etc.) do localStorage
+        carregarBoardLocal();
+
+        // Se o grafo.js já carregou, forçamos o primeiro desenho
+        if (typeof atualizarGrafo === 'function') {
+            atualizarGrafo();
+        }
     });
 }
 
