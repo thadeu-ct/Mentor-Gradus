@@ -1,15 +1,14 @@
 // =========================================================
-//  MENTOR GRADUS - GRAFO.JS (Versão Árvore Hierárquica 🌳)
+//  MENTOR GRADUS - GRAFO.JS (Versão Corrigida com IDs 🆔)
 // =========================================================
 
-// Estado local para guardar substituições de optativas (ex: "INF0300" virou "FIL1000")
+// Estado local para guardar substituições de optativas
 const substituicoesOptativas = {};
 
 // --- BLOCO DE SEGURANÇA & OVERRIDES ---
 window.salvarBoardLocal = function() { console.log("🔒 Salvar bloqueado no Grafo."); };
 window.adicionarColunaPeriodo = function() { console.log("🔒 Adicionar Coluna bloqueado."); };
 
-// Override para inicializar o grafo corretamente sem desenhar colunas
 window.carregarBoardLocal = function() {
     const salvo = localStorage.getItem('mentorGradus_Estado');
     if (!salvo) return;
@@ -55,22 +54,13 @@ window.carregarBoardLocal = function() {
     setTimeout(atualizarGrafoLogica, 500);
 };
 
-// Override da função do Modal para funcionar dentro do Grafo
-// Quando o usuário escolhe uma matéria no Modal, rodamos isso:
 window.selecionarMateriaDoModal = function(materia) {
     console.log("🎯 Matéria escolhida no grafo:", materia.codigo);
-    
-    // Descobre qual grupo estava sendo substituído
     const codigoGrupo = window.grupoSendoEditado;
     if (codigoGrupo) {
-        // Salva a escolha na memória do grafo
         substituicoesOptativas[codigoGrupo] = materia;
-        
-        // Fecha modal
         document.getElementById('modal-selecao').classList.add('escondido');
         document.getElementById('modal-backdrop').classList.add('escondido');
-        
-        // Redesenha a árvore com a nova matéria
         atualizarGrafoLogica();
     }
 };
@@ -109,7 +99,7 @@ function atualizarGrafoLogica() {
     }
     if (container && container.innerText.includes("Selecione")) container.innerHTML = '';
 
-    // 1. Coleta os Códigos Visíveis
+    // 1. Coleta Códigos
     let codigosParaExibir = new Set();
     const adicionar = (lista) => { if (lista) lista.forEach(c => codigosParaExibir.add(c)); };
 
@@ -124,16 +114,14 @@ function atualizarGrafoLogica() {
         }
     });
 
-    // 2. Monta os Elementos (Nós e Arestas)
     const elements = [];
     const nosAdicionados = new Set();
 
-    // Helper para adicionar nó
     const criarNo = (codigo, nome, tipo) => {
-        if (nosAdicionados.has(codigo)) return;
+        if (!codigo || nosAdicionados.has(codigo)) return; // Proteção contra ID nulo
         
         let label = nome;
-        if (nome.length > 25) label = nome.substring(0, 25) + '...';
+        if (nome && nome.length > 25) label = nome.substring(0, 25) + '...';
         
         elements.push({
             group: 'nodes',
@@ -142,74 +130,73 @@ function atualizarGrafoLogica() {
         nosAdicionados.add(codigo);
     };
 
-    // Filtra as matérias base
     const materiasBase = window.dadosMaterias.filter(m => codigosParaExibir.has(m.codigo));
 
-    materiasBase.forEach(mat => {
-        // Verifica se tem substituição (Optativa escolhida)
-        // Mas aqui estamos iterando as obrigatórias da grade.
-        // A substituição acontece nos REQUISITOS.
-        criarNo(mat.codigo, mat.nome, 'normal');
-    });
+    // Adiciona nós das matérias base
+    materiasBase.forEach(mat => criarNo(mat.codigo, mat.nome, 'normal'));
 
-    // 3. Processa Arestas e cria Nós de Optativas/Grupos
+    // Adiciona Arestas e Nós Extras
     materiasBase.forEach(mat => {
-        
-        // --- PRÉ-REQUISITOS (Linha Sólida) ---
+        // PRÉ-REQUISITOS
         if (mat.prereqs) {
             mat.prereqs.forEach(grupo => {
                 grupo.forEach(req => {
-                    // Verifica se o requisito é um Grupo Optativo (ex: INF0300)
+                    if (!req) return; // Segurança
+
                     const ehGrupo = (req.length === 7 && req.includes('00'));
-                    
                     let origem = req;
                     
-                    // Lógica de Substituição: O usuário escolheu algo para esse grupo?
                     if (ehGrupo && substituicoesOptativas[req]) {
+                        // Caso Optativa Escolhida
                         const matEscolhida = substituicoesOptativas[req];
                         origem = matEscolhida.codigo;
-                        // Cria o nó da matéria escolhida (se ainda não existir)
                         criarNo(matEscolhida.codigo, matEscolhida.nome, 'escolhida');
                         
-                        // IMPORTANTE: Se escolheu uma matéria, ela traz os PRÓPRIOS pré-requisitos para o grafo!
-                        // (Isso cria a árvore dinâmica que você pediu)
+                        // Puxa os pré-requisitos da escolhida
                         if (matEscolhida.prereqs) {
                             matEscolhida.prereqs.forEach(g => g.forEach(p => {
-                                criarNo(p, p, 'normal'); // Adiciona o pai da escolhida (simplificado sem nome p/ garantir)
-                                elements.push({ group: 'edges', data: { source: p, target: origem }, classes: 'prerequisito' });
+                                criarNo(p, p, 'normal'); 
+                                // ID ÚNICO PARA ARESTA
+                                const edgeId = `e_${p}_${origem}`.replace(/\s/g, ''); 
+                                elements.push({ 
+                                    group: 'edges', 
+                                    data: { id: edgeId, source: p, target: origem }, // <--- ID AQUI!
+                                    classes: 'prerequisito' 
+                                });
                             }));
                         }
-
                     } else if (ehGrupo) {
-                        // Se não escolheu, cria o nó do Grupo (Laranja)
+                        // Caso Grupo Genérico
                         const nomeGrupo = window.dadosOptativas[req] ? (window.dadosOptativas[req].nome || "Optativa") : "Grupo Optativo";
                         criarNo(req, nomeGrupo, 'optativa');
                     } else {
-                        // Requisito normal, garante que o nó existe (pode ser de outro curso)
+                        // Caso Normal
                         if (!nosAdicionados.has(req)) criarNo(req, req, 'normal');
                     }
 
-                    // Cria a aresta Sólida
+                    // CRIA ARESTA COM ID
+                    const edgeId = `e_${origem}_${mat.codigo}`.replace(/\s/g, '');
                     elements.push({
                         group: 'edges',
-                        data: { source: origem, target: mat.codigo },
+                        data: { id: edgeId, source: origem, target: mat.codigo }, // <--- ID AQUI!
                         classes: 'prerequisito'
                     });
                 });
             });
         }
 
-        // --- CORREQUISITOS (Linha Pontilhada) ---
+        // CORREQUISITOS
         if (mat.correq) {
             mat.correq.forEach(grupo => {
                 grupo.forEach(req => {
-                    // Mesma lógica de grupo/normal
+                    if (!req) return;
                     if (!nosAdicionados.has(req)) criarNo(req, req, 'normal');
                     
+                    const edgeId = `e_cor_${req}_${mat.codigo}`.replace(/\s/g, '');
                     elements.push({
                         group: 'edges',
-                        data: { source: req, target: mat.codigo },
-                        classes: 'correquisito' // Classe para pontilhado
+                        data: { id: edgeId, source: req, target: mat.codigo }, // <--- ID AQUI!
+                        classes: 'correquisito'
                     });
                 });
             });
@@ -223,7 +210,6 @@ function desenharCytoscape(elements) {
     const container = document.getElementById('cy');
     
     const estilo = [
-        // NÓ NORMAL (Azul/Branco)
         {
             selector: 'node[tipo="normal"], node[tipo="escolhida"]',
             style: {
@@ -235,7 +221,6 @@ function desenharCytoscape(elements) {
                 'width': '140px', 'height': '60px', 'font-size': '11px', 'font-weight': 'bold', 'color': '#2c3e50'
             }
         },
-        // NÓ OPTATIVA/GRUPO (Laranja)
         {
             selector: 'node[tipo="optativa"]',
             style: {
@@ -248,42 +233,31 @@ function desenharCytoscape(elements) {
                 'border-style': 'dashed'
             }
         },
-        // ARESTA SÓLIDA (Pré-requisito)
         {
             selector: 'edge.prerequisito',
             style: {
-                'width': 2, 
-                'line-color': '#95a5a6', 
-                'target-arrow-color': '#95a5a6',
-                'target-arrow-shape': 'triangle', 
-                'curve-style': 'bezier'
+                'width': 2, 'line-color': '#95a5a6', 'target-arrow-color': '#95a5a6',
+                'target-arrow-shape': 'triangle', 'curve-style': 'bezier'
             }
         },
-        // ARESTA PONTILHADA (Correquisito)
         {
             selector: 'edge.correquisito',
             style: {
-                'width': 2,
-                'line-color': '#7f8c8d',
-                'target-arrow-color': '#7f8c8d',
-                'target-arrow-shape': 'circle', // Diferente para destacar
-                'line-style': 'dashed',         // <--- PONTILHADO AQUI
-                'curve-style': 'bezier'
+                'width': 2, 'line-color': '#7f8c8d', 'target-arrow-color': '#7f8c8d',
+                'target-arrow-shape': 'circle', 'line-style': 'dashed', 'curve-style': 'bezier'
             }
         },
-        // ESTADOS DE HOVER
         { selector: '.highlight', style: { 'background-color': '#d6eaf8', 'border-color': '#3498db', 'border-width': 3 } },
         { selector: '.prerequisito-path', style: { 'line-color': '#e74c3c', 'target-arrow-color': '#e74c3c', 'width': 3 } },
         { selector: '.libera-path', style: { 'line-color': '#27ae60', 'target-arrow-color': '#27ae60', 'width': 3 } },
         { selector: '.faded', style: { 'opacity': 0.1 } }
     ];
 
-    // Configuração Hierárquica (Árvore)
     const layoutConfig = { 
         name: 'dagre', 
-        rankDir: 'TB',    // Top to Bottom (Hierarquia Vertical)
-        nodeSep: 40,      // Espaço horizontal
-        rankSep: 80,      // Espaço vertical (níveis)
+        rankDir: 'TB', 
+        nodeSep: 40, 
+        rankSep: 80, 
         padding: 30,
         animate: true,
         animationDuration: 600
@@ -301,7 +275,6 @@ function desenharCytoscape(elements) {
             minZoom: 0.2, maxZoom: 2, wheelSensitivity: 0.2
         });
         
-        // EVENTO 1: Hover (Highlight)
         window.cyInstance.on('mouseover', 'node', e => {
             const node = e.target;
             const cy = window.cyInstance;
@@ -315,23 +288,11 @@ function desenharCytoscape(elements) {
             window.cyInstance.elements().removeClass('highlight prerequisito-path libera-path faded');
         });
 
-        // EVENTO 2: Clique na Optativa (Abre Modal)
         window.cyInstance.on('tap', 'node[tipo="optativa"]', e => {
             const node = e.target;
             const codigoGrupo = node.id();
-            
-            console.log("Abrindo modal para grupo:", codigoGrupo);
-            
-            // Define variável global para saber quem estamos editando
             window.grupoSendoEditado = codigoGrupo;
-            
-            // Chama a função global do app.js para abrir o modal
-            if (typeof abrirModalSelecao === 'function') {
-                // Passa creditos = 0 só pra cumprir assinatura, o foco é a escolha
-                abrirModalSelecao(codigoGrupo, 0); 
-            } else {
-                alert("Erro: Modal não encontrado. Verifique se app.js carregou.");
-            }
+            if (typeof abrirModalSelecao === 'function') abrirModalSelecao(codigoGrupo, 0); 
         });
     }
 }
