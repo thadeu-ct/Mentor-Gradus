@@ -1,5 +1,5 @@
 // =========================================================
-//  MENTOR GRADUS - GRAFO.JS (Versão Compacta / Grid 🧱)
+//  MENTOR GRADUS - GRAFO.JS (Versão Centralizada & Corrigida)
 // =========================================================
 
 const substituicoesOptativas = {};
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { 
                 if (window.cyInstance) { 
                     window.cyInstance.resize(); 
-                    window.cyInstance.fit(); // Ajusta zoom ao abrir/fechar sidebar
+                    window.cyInstance.fit(window.cyInstance.elements(), 30);
                 } 
             }, 350);
         });
@@ -119,20 +119,17 @@ function atualizarGrafoLogica() {
     const elements = [];
     const nosAdicionados = new Set();
 
-    // Função de criação de nós mais compacta
     const criarNo = (codigo, nome, tipo) => {
         if (!codigo || nosAdicionados.has(codigo)) return;
         
-        // CORTE DE TEXTO AGRESSIVO: Só mostra o código e início do nome
         let label = codigo; 
         
-        // Truque: Nome completo vai no tooltip (data), label fica curto
         elements.push({
             group: 'nodes',
             data: { 
                 id: codigo, 
                 label: label, 
-                fullName: nome, // Guardado para usar depois se precisar
+                fullName: nome,
                 tipo: tipo 
             }
         });
@@ -147,10 +144,15 @@ function atualizarGrafoLogica() {
             mat.prereqs.forEach(grupo => {
                 grupo.forEach(req => {
                     if (!req) return;
-                    const ehGrupo = (req.length === 7 && req.includes('00'));
+                    
+                    // --- CORREÇÃO DE LÓGICA DE GRUPO ---
+                    // Se tem pelo menos 4 letras e a 4ª letra (índice 3) é '0' -> É Grupo (Ex: INF0307)
+                    const ehGrupo = (req.length >= 4 && req[3] === '0');
+                    
                     let origem = req;
                     
                     if (ehGrupo && substituicoesOptativas[req]) {
+                        // Caso 1: Grupo já substituído por escolha
                         const matEscolhida = substituicoesOptativas[req];
                         origem = matEscolhida.codigo;
                         criarNo(matEscolhida.codigo, matEscolhida.nome, 'escolhida');
@@ -162,11 +164,22 @@ function atualizarGrafoLogica() {
                             }));
                         }
                     } else if (ehGrupo) {
-                        const nomeGrupo = window.dadosOptativas[req] ? (window.dadosOptativas[req].nome || "Optativa") : "Grupo";
+                        // Caso 2: Grupo genérico (Nó Laranja)
+                        // Só desenha se for um grupo válido conhecido ou se quisermos mostrar tudo
+                        // O bug do INF0307 era que ele aparecia como 'normal'. Agora vai aparecer como 'optativa'.
+                        
+                        const dadosGrupo = window.dadosOptativas[req];
+                        const nomeGrupo = dadosGrupo ? (dadosGrupo.nome || "Grupo") : req;
+                        
+                        // Se não tem dados no JSON de optativas, pode ser um código fantasma.
+                        // Mas para segurança, desenhamos como optativa para você ver que é um grupo.
                         criarNo(req, nomeGrupo, 'optativa');
+                        
                     } else {
+                        // Caso 3: Matéria Normal (Branca)
                         if (!nosAdicionados.has(req)) criarNo(req, req, 'normal');
                     }
+                    
                     const edgeId = `e_${origem}_${mat.codigo}`.replace(/\s/g, '');
                     elements.push({ group: 'edges', data: { id: edgeId, source: origem, target: mat.codigo }, classes: 'prerequisito' });
                 });
@@ -190,7 +203,6 @@ function atualizarGrafoLogica() {
 function desenharCytoscape(elements) {
     const container = document.getElementById('cy');
     
-    // ESTILIZAÇÃO COMPACTA
     const estilo = [
         {
             selector: 'node',
@@ -200,16 +212,8 @@ function desenharCytoscape(elements) {
                 'border-width': 1, 
                 'border-color': '#7f8c8d',
                 'label': 'data(label)',
-                'text-valign': 'center', 
-                'text-halign': 'center', 
-                'text-wrap': 'wrap',
-                
-                // DIMENSÕES REDUZIDAS (Compactação)
-                'width': '90px', 
-                'height': '35px', 
-                'font-size': '10px', 
-                'font-weight': 'bold', 
-                'color': '#2c3e50'
+                'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap',
+                'width': '90px', 'height': '35px', 'font-size': '10px', 'font-weight': 'bold', 'color': '#2c3e50'
             }
         },
         {
@@ -221,48 +225,28 @@ function desenharCytoscape(elements) {
                 'border-style': 'dashed'
             }
         },
-        {
-            selector: 'edge',
-            style: {
-                'width': 1, // Linha mais fina
-                'curve-style': 'bezier',
-                'arrow-scale': 0.8
-            }
-        },
-        {
-            selector: 'edge.prerequisito',
-            style: { 'line-color': '#95a5a6', 'target-arrow-color': '#95a5a6', 'target-arrow-shape': 'triangle' }
-        },
-        {
-            selector: 'edge.correquisito',
-            style: { 'line-color': '#bdc3c7', 'target-arrow-color': '#bdc3c7', 'target-arrow-shape': 'circle', 'line-style': 'dashed' }
-        },
-        // Highlight states
+        { selector: 'edge', style: { 'width': 1, 'curve-style': 'bezier', 'arrow-scale': 0.8 } },
+        { selector: 'edge.prerequisito', style: { 'line-color': '#95a5a6', 'target-arrow-color': '#95a5a6', 'target-arrow-shape': 'triangle' } },
+        { selector: 'edge.correquisito', style: { 'line-color': '#bdc3c7', 'target-arrow-color': '#bdc3c7', 'target-arrow-shape': 'circle', 'line-style': 'dashed' } },
         { selector: '.highlight', style: { 'background-color': '#d6eaf8', 'border-color': '#3498db', 'border-width': 2 } },
         { selector: '.prerequisito-path', style: { 'line-color': '#e74c3c', 'target-arrow-color': '#e74c3c', 'width': 2 } },
         { selector: '.libera-path', style: { 'line-color': '#27ae60', 'target-arrow-color': '#27ae60', 'width': 2 } },
-        { selector: '.faded', style: { 'opacity': 0.05 } } // Esconde quase tudo que não importa
+        { selector: '.faded', style: { 'opacity': 0.05 } }
     ];
 
-    // LAYOUT APERTADO
     const layoutConfig = { 
         name: 'dagre', 
         rankDir: 'TB', 
-        
-        // A MÁGICA DA COMPACTAÇÃO:
-        nodeSep: 15,    // Espaço horizontal mínimo entre cartões
-        rankSep: 40,    // Espaço vertical entre níveis (gerações)
-        edgeSep: 10,    // Espaço entre linhas
-        
-        padding: 20,
-        animate: false  // Desliga animação inicial para carregar rápido na posição certa
+        nodeSep: 15,    
+        rankSep: 40,   
+        edgeSep: 10,    
+        padding: 30,
+        animate: false 
     };
 
     if (window.cyInstance) {
         window.cyInstance.json({ elements: elements });
         window.cyInstance.layout(layoutConfig).run();
-        // Força ajuste de tela após redesenhar
-        window.cyInstance.fit(elements, 30); 
     } else {
         window.cyInstance = cytoscape({
             container: container,
@@ -278,11 +262,6 @@ function desenharCytoscape(elements) {
         window.cyInstance.on('mouseover', 'node', e => {
             const node = e.target;
             const cy = window.cyInstance;
-            
-            // Mostra nome completo ao passar o mouse (Tooltip improvisado)
-            // Para fazer algo profissional, precisaria de libs externas, 
-            // mas aqui podemos injetar no DOM se quiser depois.
-            
             cy.elements().removeClass('highlight prerequisito-path libera-path faded').addClass('faded');
             node.removeClass('faded').addClass('highlight');
             node.predecessors().removeClass('faded').addClass('prerequisito-path');
@@ -298,10 +277,16 @@ function desenharCytoscape(elements) {
             window.grupoSendoEditado = node.id();
             if (typeof abrirModalSelecao === 'function') abrirModalSelecao(node.id(), 0); 
         });
+    }
 
-        // AJUSTE FINAL: Garante que caiba na tela
+    // --- CENTRALIZAÇÃO AUTOMÁTICA ---
+    // Após o layout rodar e posicionar tudo, ajustamos a câmera
+    if (window.cyInstance) {
         window.cyInstance.ready(() => {
+            // Ajusta o zoom para caber tudo com margem de 30px
             window.cyInstance.fit(elements, 30);
+            
+            window.cyInstance.center(); 
         });
     }
 }
