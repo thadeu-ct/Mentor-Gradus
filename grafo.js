@@ -1,11 +1,10 @@
 // =========================================================
-//  MENTOR GRADUS - GRAFO.JS (Versão Corrigida com IDs 🆔)
+//  MENTOR GRADUS - GRAFO.JS (Versão Compacta / Grid 🧱)
 // =========================================================
 
-// Estado local para guardar substituições de optativas
 const substituicoesOptativas = {};
 
-// --- BLOCO DE SEGURANÇA & OVERRIDES ---
+// --- BLOCO DE SEGURANÇA ---
 window.salvarBoardLocal = function() { console.log("🔒 Salvar bloqueado no Grafo."); };
 window.adicionarColunaPeriodo = function() { console.log("🔒 Adicionar Coluna bloqueado."); };
 
@@ -55,7 +54,6 @@ window.carregarBoardLocal = function() {
 };
 
 window.selecionarMateriaDoModal = function(materia) {
-    console.log("🎯 Matéria escolhida no grafo:", materia.codigo);
     const codigoGrupo = window.grupoSendoEditado;
     if (codigoGrupo) {
         substituicoesOptativas[codigoGrupo] = materia;
@@ -83,7 +81,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toggleBtn && cyDiv) {
         toggleBtn.addEventListener("click", () => {
             cyDiv.classList.toggle("recolhido");
-            setTimeout(() => { if (window.cyInstance) { window.cyInstance.resize(); window.cyInstance.fit(); } }, 350);
+            setTimeout(() => { 
+                if (window.cyInstance) { 
+                    window.cyInstance.resize(); 
+                    window.cyInstance.fit(); // Ajusta zoom ao abrir/fechar sidebar
+                } 
+            }, 350);
         });
     }
 });
@@ -99,7 +102,6 @@ function atualizarGrafoLogica() {
     }
     if (container && container.innerText.includes("Selecione")) container.innerHTML = '';
 
-    // 1. Coleta Códigos
     let codigosParaExibir = new Set();
     const adicionar = (lista) => { if (lista) lista.forEach(c => codigosParaExibir.add(c)); };
 
@@ -117,87 +119,66 @@ function atualizarGrafoLogica() {
     const elements = [];
     const nosAdicionados = new Set();
 
+    // Função de criação de nós mais compacta
     const criarNo = (codigo, nome, tipo) => {
-        if (!codigo || nosAdicionados.has(codigo)) return; // Proteção contra ID nulo
+        if (!codigo || nosAdicionados.has(codigo)) return;
         
-        let label = nome;
-        if (nome && nome.length > 25) label = nome.substring(0, 25) + '...';
+        // CORTE DE TEXTO AGRESSIVO: Só mostra o código e início do nome
+        let label = codigo; 
         
+        // Truque: Nome completo vai no tooltip (data), label fica curto
         elements.push({
             group: 'nodes',
-            data: { id: codigo, label: `${codigo}\n${label}`, tipo: tipo }
+            data: { 
+                id: codigo, 
+                label: label, 
+                fullName: nome, // Guardado para usar depois se precisar
+                tipo: tipo 
+            }
         });
         nosAdicionados.add(codigo);
     };
 
     const materiasBase = window.dadosMaterias.filter(m => codigosParaExibir.has(m.codigo));
-
-    // Adiciona nós das matérias base
     materiasBase.forEach(mat => criarNo(mat.codigo, mat.nome, 'normal'));
 
-    // Adiciona Arestas e Nós Extras
     materiasBase.forEach(mat => {
-        // PRÉ-REQUISITOS
         if (mat.prereqs) {
             mat.prereqs.forEach(grupo => {
                 grupo.forEach(req => {
-                    if (!req) return; // Segurança
-
+                    if (!req) return;
                     const ehGrupo = (req.length === 7 && req.includes('00'));
                     let origem = req;
                     
                     if (ehGrupo && substituicoesOptativas[req]) {
-                        // Caso Optativa Escolhida
                         const matEscolhida = substituicoesOptativas[req];
                         origem = matEscolhida.codigo;
                         criarNo(matEscolhida.codigo, matEscolhida.nome, 'escolhida');
-                        
-                        // Puxa os pré-requisitos da escolhida
                         if (matEscolhida.prereqs) {
                             matEscolhida.prereqs.forEach(g => g.forEach(p => {
                                 criarNo(p, p, 'normal'); 
-                                // ID ÚNICO PARA ARESTA
                                 const edgeId = `e_${p}_${origem}`.replace(/\s/g, ''); 
-                                elements.push({ 
-                                    group: 'edges', 
-                                    data: { id: edgeId, source: p, target: origem }, // <--- ID AQUI!
-                                    classes: 'prerequisito' 
-                                });
+                                elements.push({ group: 'edges', data: { id: edgeId, source: p, target: origem }, classes: 'prerequisito' });
                             }));
                         }
                     } else if (ehGrupo) {
-                        // Caso Grupo Genérico
-                        const nomeGrupo = window.dadosOptativas[req] ? (window.dadosOptativas[req].nome || "Optativa") : "Grupo Optativo";
+                        const nomeGrupo = window.dadosOptativas[req] ? (window.dadosOptativas[req].nome || "Optativa") : "Grupo";
                         criarNo(req, nomeGrupo, 'optativa');
                     } else {
-                        // Caso Normal
                         if (!nosAdicionados.has(req)) criarNo(req, req, 'normal');
                     }
-
-                    // CRIA ARESTA COM ID
                     const edgeId = `e_${origem}_${mat.codigo}`.replace(/\s/g, '');
-                    elements.push({
-                        group: 'edges',
-                        data: { id: edgeId, source: origem, target: mat.codigo }, // <--- ID AQUI!
-                        classes: 'prerequisito'
-                    });
+                    elements.push({ group: 'edges', data: { id: edgeId, source: origem, target: mat.codigo }, classes: 'prerequisito' });
                 });
             });
         }
-
-        // CORREQUISITOS
         if (mat.correq) {
             mat.correq.forEach(grupo => {
                 grupo.forEach(req => {
                     if (!req) return;
                     if (!nosAdicionados.has(req)) criarNo(req, req, 'normal');
-                    
                     const edgeId = `e_cor_${req}_${mat.codigo}`.replace(/\s/g, '');
-                    elements.push({
-                        group: 'edges',
-                        data: { id: edgeId, source: req, target: mat.codigo }, // <--- ID AQUI!
-                        classes: 'correquisito'
-                    });
+                    elements.push({ group: 'edges', data: { id: edgeId, source: req, target: mat.codigo }, classes: 'correquisito' });
                 });
             });
         }
@@ -209,75 +190,99 @@ function atualizarGrafoLogica() {
 function desenharCytoscape(elements) {
     const container = document.getElementById('cy');
     
+    // ESTILIZAÇÃO COMPACTA
     const estilo = [
         {
-            selector: 'node[tipo="normal"], node[tipo="escolhida"]',
+            selector: 'node',
             style: {
                 'shape': 'round-rectangle',
                 'background-color': 'white',
-                'border-width': 2, 'border-color': '#34495e',
+                'border-width': 1, 
+                'border-color': '#7f8c8d',
                 'label': 'data(label)',
-                'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap',
-                'width': '140px', 'height': '60px', 'font-size': '11px', 'font-weight': 'bold', 'color': '#2c3e50'
+                'text-valign': 'center', 
+                'text-halign': 'center', 
+                'text-wrap': 'wrap',
+                
+                // DIMENSÕES REDUZIDAS (Compactação)
+                'width': '90px', 
+                'height': '35px', 
+                'font-size': '10px', 
+                'font-weight': 'bold', 
+                'color': '#2c3e50'
             }
         },
         {
             selector: 'node[tipo="optativa"]',
             style: {
-                'shape': 'round-rectangle',
                 'background-color': '#fff3e0',
-                'border-width': 2, 'border-color': '#e67e22',
-                'label': 'data(label)',
-                'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap',
-                'width': '140px', 'height': '60px', 'font-size': '11px', 'font-weight': 'bold', 'color': '#d35400',
+                'border-color': '#e67e22',
+                'color': '#d35400',
                 'border-style': 'dashed'
             }
         },
         {
-            selector: 'edge.prerequisito',
+            selector: 'edge',
             style: {
-                'width': 2, 'line-color': '#95a5a6', 'target-arrow-color': '#95a5a6',
-                'target-arrow-shape': 'triangle', 'curve-style': 'bezier'
+                'width': 1, // Linha mais fina
+                'curve-style': 'bezier',
+                'arrow-scale': 0.8
             }
         },
         {
-            selector: 'edge.correquisito',
-            style: {
-                'width': 2, 'line-color': '#7f8c8d', 'target-arrow-color': '#7f8c8d',
-                'target-arrow-shape': 'circle', 'line-style': 'dashed', 'curve-style': 'bezier'
-            }
+            selector: 'edge.prerequisito',
+            style: { 'line-color': '#95a5a6', 'target-arrow-color': '#95a5a6', 'target-arrow-shape': 'triangle' }
         },
-        { selector: '.highlight', style: { 'background-color': '#d6eaf8', 'border-color': '#3498db', 'border-width': 3 } },
-        { selector: '.prerequisito-path', style: { 'line-color': '#e74c3c', 'target-arrow-color': '#e74c3c', 'width': 3 } },
-        { selector: '.libera-path', style: { 'line-color': '#27ae60', 'target-arrow-color': '#27ae60', 'width': 3 } },
-        { selector: '.faded', style: { 'opacity': 0.1 } }
+        {
+            selector: 'edge.correquisito',
+            style: { 'line-color': '#bdc3c7', 'target-arrow-color': '#bdc3c7', 'target-arrow-shape': 'circle', 'line-style': 'dashed' }
+        },
+        // Highlight states
+        { selector: '.highlight', style: { 'background-color': '#d6eaf8', 'border-color': '#3498db', 'border-width': 2 } },
+        { selector: '.prerequisito-path', style: { 'line-color': '#e74c3c', 'target-arrow-color': '#e74c3c', 'width': 2 } },
+        { selector: '.libera-path', style: { 'line-color': '#27ae60', 'target-arrow-color': '#27ae60', 'width': 2 } },
+        { selector: '.faded', style: { 'opacity': 0.05 } } // Esconde quase tudo que não importa
     ];
 
+    // LAYOUT APERTADO
     const layoutConfig = { 
         name: 'dagre', 
         rankDir: 'TB', 
-        nodeSep: 40, 
-        rankSep: 80, 
-        padding: 30,
-        animate: true,
-        animationDuration: 600
+        
+        // A MÁGICA DA COMPACTAÇÃO:
+        nodeSep: 15,    // Espaço horizontal mínimo entre cartões
+        rankSep: 40,    // Espaço vertical entre níveis (gerações)
+        edgeSep: 10,    // Espaço entre linhas
+        
+        padding: 20,
+        animate: false  // Desliga animação inicial para carregar rápido na posição certa
     };
 
     if (window.cyInstance) {
         window.cyInstance.json({ elements: elements });
         window.cyInstance.layout(layoutConfig).run();
+        // Força ajuste de tela após redesenhar
+        window.cyInstance.fit(elements, 30); 
     } else {
         window.cyInstance = cytoscape({
             container: container,
             elements: elements,
             style: estilo,
             layout: layoutConfig,
-            minZoom: 0.2, maxZoom: 2, wheelSensitivity: 0.2
+            minZoom: 0.1, 
+            maxZoom: 3, 
+            wheelSensitivity: 0.2
         });
         
+        // Eventos
         window.cyInstance.on('mouseover', 'node', e => {
             const node = e.target;
             const cy = window.cyInstance;
+            
+            // Mostra nome completo ao passar o mouse (Tooltip improvisado)
+            // Para fazer algo profissional, precisaria de libs externas, 
+            // mas aqui podemos injetar no DOM se quiser depois.
+            
             cy.elements().removeClass('highlight prerequisito-path libera-path faded').addClass('faded');
             node.removeClass('faded').addClass('highlight');
             node.predecessors().removeClass('faded').addClass('prerequisito-path');
@@ -290,9 +295,13 @@ function desenharCytoscape(elements) {
 
         window.cyInstance.on('tap', 'node[tipo="optativa"]', e => {
             const node = e.target;
-            const codigoGrupo = node.id();
-            window.grupoSendoEditado = codigoGrupo;
-            if (typeof abrirModalSelecao === 'function') abrirModalSelecao(codigoGrupo, 0); 
+            window.grupoSendoEditado = node.id();
+            if (typeof abrirModalSelecao === 'function') abrirModalSelecao(node.id(), 0); 
+        });
+
+        // AJUSTE FINAL: Garante que caiba na tela
+        window.cyInstance.ready(() => {
+            window.cyInstance.fit(elements, 30);
         });
     }
 }
