@@ -2052,7 +2052,7 @@
          "nome": "Análise de Algoritmos",
          "creditos": 4,
          "min-cred": 0,
-         "prereqs": [["INF1037", "INF1636"]],
+         "prereqs": [["INF1037", "INF1631"]],
          "correq": [[]]
     },
     { 
